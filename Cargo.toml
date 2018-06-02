@@ -1,0 +1,6 @@
+[package]
+name = "simple_lisp"
+version = "0.1.0"
+authors = ["TonyMooori"]
+
+[dependencies]
