@@ -1,5 +1,8 @@
 
 pub mod interpreter;
+pub mod reader;
+pub mod printer;
+pub mod evaluater;
 
 use interpreter::Interpreter;
 
