@@ -3,19 +3,28 @@ use lexer::Lexer;
 use types::{TokenKind,MalType,Token};
 
 impl Interpreter{
-    pub fn read(&self,code:String) -> Vec<Result<MalType,String>>{
+    pub fn read(&self,code:String) -> Result<Vec<MalType>,String>{
         let mut lexer = Lexer::new(code);
-        let mut result = Vec::new();
+        let mut asts = Vec::new();
 
         while ! lexer.is_end(){
-            result.push(self.read_form(&mut lexer));
+            let result = self.read_form(&mut lexer);
+
+            if let Err(e) = result{
+                return Err(e);
+            }else{
+                asts.push(result.unwrap());
+            }
+            
         }
 
-        result
+        Ok(asts)
     }
 
     fn read_form(&self,lexer : &mut Lexer) -> Result<MalType,String>{
         let otoken = lexer.peek();
+
+        // eprintln!("read_form was called. lexer.peek() = {:?}",lexer.peek());
 
         if otoken.is_none(){
             return Err(format!("It's a bug! See read_form."))
@@ -23,8 +32,8 @@ impl Interpreter{
 
         let token = otoken.unwrap();
 
-        match token.kind {
-            TokenKind::Symbol(s) => match s.chars().nth(0).unwrap() {
+        if let TokenKind::Symbol(s) = token.kind{
+            match s.chars().nth(0).unwrap() {
                 '[' => {
                     self.read_vector(lexer)
                 },
@@ -34,14 +43,33 @@ impl Interpreter{
                 _ => {
                     Err(format!("Unexpected symbol: {} ",s))
                 }
-            },
+            }
+        }else{
+            self.read_atom(lexer)
+        }
+    }
 
+    fn read_atom(&self,lexer:&mut Lexer) -> Result<MalType,String>{
+        let otoken = lexer.next();
+
+        if otoken.is_none(){
+            return Err(format!("It's a bug! See read_atom."))
+        }
+
+        let token = otoken.unwrap();
+
+        match token.kind {
+            TokenKind::Symbol(_) => 
+                Err(format!("")),
+            
             TokenKind::Identifier(s) => {
                 Ok(
                     if s == "true"{
                         MalType::Bool(true)
                     }else if s == "false" {
                         MalType::Bool(false)
+                    }else if s == "nil" {
+                        MalType::Nil
                     }else{
                         MalType::Identifier(s)
                     }
@@ -59,6 +87,8 @@ impl Interpreter{
     fn read_sequence(&self,lexer:&mut Lexer,start : TokenKind,end : TokenKind)->Result<Vec<MalType>,String>{
         let mut v = vec![];
         let mut flag = false;
+
+        // eprintln!("read_seq was called. lexer.peek() = {:?}",lexer.peek());
 
         // read left bracket
         if lexer.next().unwrap().kind != start {
@@ -87,7 +117,6 @@ impl Interpreter{
         }else{
             Err(format!("Cannot found close symbol: {:?}",end))
         }
-        
     }
 
     fn read_vector(&self,lexer:&mut Lexer) -> Result<MalType,String>{

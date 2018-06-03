@@ -7,12 +7,15 @@ impl Interpreter{
         let asts = self.read(s); // Vec<Result<MalType,String>> 
         let mut last : MalType = MalType::Nil;
 
-        for ast in asts{
-            match ast{
-                Ok(mt) => last = self.eval(mt),
-                Err(msg)=> println!("Parse Error\n{}",msg),
+        if let Err(e) = asts{
+            last = MalType::Error(e);
+        }else{
+            let asts = asts.unwrap();
+            for ast in asts{
+                last = self.eval(ast);
             }
         }
+
         self.print(last);
     }
 }
