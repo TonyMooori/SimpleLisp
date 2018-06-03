@@ -3,7 +3,7 @@ pub mod interpreter;
 pub mod reader;
 pub mod printer;
 pub mod evaluater;
-pub mod token;
+pub mod types;
 pub mod lexer;
 
 use interpreter::Interpreter;

@@ -1,6 +1,6 @@
 use interpreter::Interpreter;
 use lexer::Lexer;
-use token::{TokenKind,MalType,Token};
+use types::{TokenKind,MalType,Token};
 
 impl Interpreter{
     pub fn read(&self,code:String) -> Vec<Result<MalType,String>>{

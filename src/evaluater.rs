@@ -1,5 +1,5 @@
 use interpreter::Interpreter;
-use token::MalType;
+use types::MalType;
 use std::io;
 
 impl Interpreter{

@@ -1,4 +1,4 @@
-use token::{TokenKind,Token};
+use types::{TokenKind,Token};
 
 pub struct Lexer{
     source : String,

@@ -1,5 +1,5 @@
 use interpreter::Interpreter;
-use token::MalType;
+use types::MalType;
 
 impl Interpreter{
     pub fn print(&self,mt:MalType){
