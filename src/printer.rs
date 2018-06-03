@@ -1,8 +1,8 @@
 use interpreter::Interpreter;
+use token::MalType;
 
 impl Interpreter{
-    pub fn print(&self,s:String)->String{
-        println!("{}",s);
-        s
+    pub fn print(&self,mt:MalType){
+        println!("{:?}",mt);
     }
 }

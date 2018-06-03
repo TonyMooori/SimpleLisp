@@ -3,6 +3,8 @@ use token::{TokenKind,Token};
 pub struct Lexer{
     source : String,
     index : usize,
+    tokens : Vec<Token>,
+    token_index : usize,
 }
 
 fn is_symbol_char(c:char)->bool{
@@ -23,11 +25,38 @@ fn is_symbol_char(c:char)->bool{
 
 impl Lexer{
     pub fn new(source:String)->Lexer{
-        Lexer{
+        let mut lexer = Lexer{
             source : source,
             // 次のトークンの最初の文字のインデックス
             index : 0 ,
+            tokens : vec![],
+            token_index : 0,
+        };
+
+        lexer.read_all_tokens();
+
+        lexer
+    }
+
+    pub fn is_end(&self)->bool{
+        self.token_index >= self.tokens.len()
+    }
+
+    pub fn peek(&self)->Option<Token>{
+        match self.tokens.get(self.token_index){
+            Some(token) => Some((*token).clone()),
+            None => None,
         }
+    }
+
+    pub fn next(&mut self)->Option<Token>{
+        let ret = self.peek();
+
+        if ret.is_some(){
+            self.token_index += 1;
+        }
+        
+        ret
     }
 
     fn next_char(&self) -> Option<char> {
@@ -55,7 +84,7 @@ impl Lexer{
 }
 
 impl Lexer{
-    pub fn read_next_token(&mut self)->Option<Token>{
+    fn read_next_token(&mut self)->Option<Token>{
         self.skip_whitespace();
         
         if let Some(c) = self.current_char(){
@@ -73,6 +102,12 @@ impl Lexer{
             }
         }else{
             None
+        }
+    }
+
+    fn read_all_tokens(&mut self){
+        while let Some(token) = self.read_next_token(){
+            self.tokens.push(token);
         }
     }
 
@@ -210,7 +245,7 @@ fn test_lexer_0(){
 
     for (idx,kind) in token_list.into_iter().enumerate(){
         eprintln!("current idx is {}",idx);
-        assert_eq!(lexer.read_next_token().unwrap().kind,kind);
+        assert_eq!(lexer.next().unwrap().kind,kind);
     }
 
     assert_eq!(lexer.read_next_token().is_some(),false);

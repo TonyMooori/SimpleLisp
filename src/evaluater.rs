@@ -1,18 +1,25 @@
 use interpreter::Interpreter;
+use token::MalType;
 use std::io;
 
 impl Interpreter{
     pub fn rep(&self,s:String){
-        let ast = self.read(s);
-        let result = self.eval(ast);
+        let asts = self.read(s); // Vec<Result<MalType,String>> 
+        let mut last : MalType = MalType::Nil;
 
-        self.print(result);
+        for ast in asts{
+            match ast{
+                Ok(mt) => last = self.eval(mt),
+                Err(msg)=> println!("Parse Error\n{}",msg),
+            }
+        }
+        self.print(last);
     }
 }
 
 impl Interpreter{
-    pub fn eval(&self,s:String)-> String{
-        s
+    pub fn eval(&self,ast:MalType)-> MalType{
+        ast
     }
 }
 
