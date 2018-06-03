@@ -24,5 +24,6 @@ pub enum MalType{
     List(Vec<MalType>),
     Function(Vec<MalType>),
     Error(String),
+    Keyword(String),
     Nil,
 }

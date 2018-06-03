@@ -70,6 +70,8 @@ impl Interpreter{
                         MalType::Bool(false)
                     }else if s == "nil" {
                         MalType::Nil
+                    }else if s.chars().nth(0).unwrap() == ':'{
+                        MalType::Keyword(s)
                     }else{
                         MalType::Identifier(s)
                     }
