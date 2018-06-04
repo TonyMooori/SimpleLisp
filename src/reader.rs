@@ -129,12 +129,15 @@ impl Interpreter{
         let end = TokenKind::Symbol("}".to_string());
 
         // TODO: implement hash-map function
-        match self.read_sequence(lexer,start,end){
-            Ok(v) => {
-                v.insert(0,MalType::Identifier("hash-map".to_string()));
-                Ok(MalType::List(v)),
-            }
-            Err(s) => Err(s),
+        let o_hm = self.read_sequence(lexer,start,end);
+
+        if let Err(s) = o_hm{
+            Err(s)
+        }else{
+            // {:a 1 :b 2} -> (hash-map :a 1 :b 2)
+            let mut hm = o_hm.unwrap();
+            hm.insert(0,MalType::Identifier("hash-map".to_string()));
+            Ok(MalType::List(hm))
         }
     }
 
