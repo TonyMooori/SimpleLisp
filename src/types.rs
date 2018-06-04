@@ -38,4 +38,5 @@ pub enum BuiltInFunction{
     Div,
     HashMap,
     Exit,
+    Def,
 }

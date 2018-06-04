@@ -11,7 +11,7 @@ pub mod env;
 use interpreter::Interpreter;
 
 fn main() {
-    let lisp = Interpreter::new();
+    let mut lisp = Interpreter::new();
 
     lisp.repl_loop();
 }

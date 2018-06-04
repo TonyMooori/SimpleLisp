@@ -1,11 +1,10 @@
 use interpreter::Interpreter;
 use types::{MalType,BuiltInFunction};
-use std::io;
 use core::*;
 use std::process::exit;
 
 impl Interpreter{
-    fn eval(&self,ast:MalType)-> Result<MalType,String>{
+    pub fn eval(&mut self,ast:MalType)-> Result<MalType,String>{
         // eprintln!("evaluating {:?} in eval",ast);
 
         match ast{
@@ -20,14 +19,14 @@ impl Interpreter{
         }
     }
 
-    fn eval_identifier(&self,ident:String)-> Result<MalType,String>{
+    fn eval_identifier(&mut self,ident:String)-> Result<MalType,String>{
         match self.env.get(&ident){
             Some(v) => Ok(v.clone()),
             None => Err(format!("Unknown symbol: {}",ident)),
         }
     }
 
-    fn eval_list(&self,mut xs:Vec<MalType>)-> Result<MalType,String>{
+    fn eval_list(&mut self,mut xs:Vec<MalType>)-> Result<MalType,String>{
         if xs.len() == 0{
             Ok(MalType::List(xs))
         }else{
@@ -40,14 +39,11 @@ impl Interpreter{
 
             let f = f.unwrap();
 
-            // TODO: think about `if`
-            let xs = self.eval_sequence(xs);
-
-            if let Err(e) = xs{
-                return Err(e);
-            }
-
-            let xs = xs.unwrap();
+            // let xs = self.eval_sequence(xs);
+            // if let Err(e) = xs{
+            //     return Err(e);
+            // }
+            // let xs = xs.unwrap();
 
             match f {
                 MalType::BuiltInFunction(func_type) => {
@@ -63,7 +59,7 @@ impl Interpreter{
         }
     }
     
-    fn eval_sequence(&self,xs:Vec<MalType>)->Result<Vec<MalType>,String>{
+    fn eval_sequence(&mut self,xs:Vec<MalType>)->Result<Vec<MalType>,String>{
         let mut ys = vec![];
 
         for x in xs{
@@ -80,7 +76,7 @@ impl Interpreter{
     }
 
 
-    fn eval_vector(&self,xs:Vec<MalType>)-> Result<MalType,String>{
+    fn eval_vector(&mut self,xs:Vec<MalType>)-> Result<MalType,String>{
         let xs = self.eval_sequence(xs);
 
         if let Err(e) = xs{
@@ -90,73 +86,79 @@ impl Interpreter{
         }
     }
 
-    fn call_built_in_function(&self,func_type:BuiltInFunction,xs: Vec<MalType>)
+    fn call_built_in_function(&mut self,func_type:BuiltInFunction,xs: Vec<MalType>)
         -> Result<MalType,String>{
 
         match func_type{
             BuiltInFunction::Add => {
-                mal_add(xs)
+                let xs = self.eval_sequence(xs);
+                match xs{
+                    Ok(ys) => mal_add(ys),
+                    Err(e) => Err(e),
+                }
             },
             BuiltInFunction::Sub => {
-                mal_sub(xs)
+                let xs = self.eval_sequence(xs);
+                match xs{
+                    Ok(ys) => mal_sub(ys),
+                    Err(e) => Err(e),
+                }
             },
             BuiltInFunction::Mul => {
-                mal_mul(xs)
+                let xs = self.eval_sequence(xs);
+                match xs{
+                    Ok(ys) => mal_mul(ys),
+                    Err(e) => Err(e),
+                }
             },
             BuiltInFunction::Div => {
-                mal_div(xs)
+                let xs = self.eval_sequence(xs);
+                match xs{
+                    Ok(ys) => mal_div(ys),
+                    Err(e) => Err(e),
+                }
             },
             BuiltInFunction::HashMap => {
-                mal_hashmap(xs)
+                let xs = self.eval_sequence(xs);
+                match xs{
+                    Ok(ys) => mal_hashmap(ys),
+                    Err(e) => Err(e),
+                }
             },
             BuiltInFunction::Exit =>{
                 println!("Have a nice day!");
                 exit(0)
+            },
+            BuiltInFunction::Def =>{
+                self.mal_def(xs)
             }
         }
     }
 }
 
+
 impl Interpreter{
-    fn rep(&self,s:String){
-        let asts = self.read(s); // Vec<Result<MalType,String>> 
-        let mut last : Result<MalType,String> = Ok(MalType::Nil);
-
-        if let Err(e) = asts{
-            last = Err(format!("Parse error: {}",e));
+    fn mal_def(&mut self,xs : Vec<MalType>)->Result<MalType,String>{
+        if xs.len() != 2{
+            Err(format!("The function def! needs exactly 2 arguments, we got {}.",xs.len()))
         }else{
-            let asts = asts.unwrap();
-            for ast in asts{
-                last = self.eval(ast);
-
-                if let Err(e) = last{
-                    last = Err(format!("Runtime error: {}",e));
-                    break;
-                }
+            let sym = xs[0].clone();
+            let val = self.eval(xs[1].clone());
+            
+            if let Err(e) = val{
+                return Err(e);
             }
-        }
+            let val = val.unwrap();
 
-        self.print(last);
-    }
-}
+            match sym{
+                MalType::Identifier(ident) => {
+                    self.env.set(ident.clone(),val);
+                    Ok(MalType::Identifier(ident))
+                },
 
-impl Interpreter{
-    pub fn repl_loop(&self){
-        loop{
-            let code = self.read_code();
-            self.rep(code);
-        }
-    }
-
-    fn read_code(&self) -> String{
-        let mut s = String::new();       
-        // print!("user=>");
-        io::stdin().read_line(&mut s).unwrap();
-        
-        if s.trim() == ""{
-            s
-        }else{
-            format!("{}{}",s,self.read_code())
+                _ =>
+                    Err(format!("Cannot assign value to {:?}",sym)),
+            }
         }
     }
 }
