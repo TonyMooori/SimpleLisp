@@ -2,8 +2,11 @@ use interpreter::Interpreter;
 use types::MalType;
 
 impl Interpreter{
-    pub fn print(&self,mt:MalType){
-        println!("{:?}",mt);
+    pub fn print(&self,mt:Result<MalType,String>){
+        match mt {
+            Ok(v) => println!("{:?}",v),
+            Err(e) => println!("{}",e),
+        }
     }
 
     // STEP 1: Defferrable 1

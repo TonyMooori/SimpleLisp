@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind{
@@ -23,7 +24,18 @@ pub enum MalType{
     Vector(Vec<MalType>),
     List(Vec<MalType>),
     Function(Vec<MalType>),
-    Error(String),
+    BuiltInFunction(BuiltInFunction), 
     Keyword(String),
+    Dict(HashMap<String,MalType>),
     Nil,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum BuiltInFunction{
+    Add,
+    Sub,
+    Mul,
+    Div,
+    HashMap,
+    Exit,
 }

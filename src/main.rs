@@ -5,6 +5,8 @@ pub mod printer;
 pub mod evaluater;
 pub mod types;
 pub mod lexer;
+pub mod core;
+pub mod env;
 
 use interpreter::Interpreter;
 

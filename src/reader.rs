@@ -1,6 +1,6 @@
 use interpreter::Interpreter;
 use lexer::Lexer;
-use types::{TokenKind,MalType,Token};
+use types::{TokenKind,MalType,BuiltInFunction};
 
 impl Interpreter{
     pub fn read(&self,code:String) -> Result<Vec<MalType>,String>{
@@ -136,7 +136,7 @@ impl Interpreter{
         }else{
             // {:a 1 :b 2} -> (hash-map :a 1 :b 2)
             let mut hm = o_hm.unwrap();
-            hm.insert(0,MalType::Identifier("hash-map".to_string()));
+            hm.insert(0,MalType::BuiltInFunction(BuiltInFunction::HashMap));
             Ok(MalType::List(hm))
         }
     }
