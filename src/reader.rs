@@ -40,6 +40,9 @@ impl Interpreter{
                 '(' => {
                     self.read_list(lexer)
                 },
+                '{' => {
+                    self.read_dict(lexer)
+                },
                 _ => {
                     Err(format!("Unexpected symbol: {} ",s))
                 }
@@ -118,6 +121,20 @@ impl Interpreter{
             Ok(v)
         }else{
             Err(format!("Cannot found close symbol: {:?}",end))
+        }
+    }
+
+    fn read_dict(&self,lexer:&mut Lexer) -> Result<MalType,String>{
+        let start = TokenKind::Symbol("{".to_string());
+        let end = TokenKind::Symbol("}".to_string());
+
+        // TODO: implement hash-map function
+        match self.read_sequence(lexer,start,end){
+            Ok(v) => {
+                v.insert(0,MalType::Identifier("hash-map".to_string()));
+                Ok(MalType::List(v)),
+            }
+            Err(s) => Err(s),
         }
     }
 
