@@ -131,6 +131,12 @@ impl Interpreter{
             },
             BuiltInFunction::Def =>{
                 self.mal_def(xs)
+            },
+            BuiltInFunction::Let =>{
+                self.env.let_start();
+                let ret = self.mal_let(xs);
+                self.env.let_end();
+                ret
             }
         }
     }
@@ -158,6 +164,33 @@ impl Interpreter{
 
                 _ =>
                     Err(format!("Cannot assign value to {:?}",sym)),
+            }
+        }
+    }
+    fn mal_let(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
+        if xs.len() <= 2{
+            Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
+        }else{
+            let vars = xs[0].unwrap_list_vector();
+            if vars.is_none(){
+                return Err(format!("The first argument of let* must be list or vector. We get {:?}.",xs[0]));
+            }
+            let vars = sequence_to_pair(vars.unwrap());
+            if let Err(e) = vars{
+                return Err(e);
+            }
+            let vars = vars.unwrap();
+            
+            for (name,val) in vars{
+                if let Err(e) = self.mal_def(vec![name,val]){
+                    return Err(e)
+                }
+            }
+            
+            xs.remove(0);
+            match self.eval_sequence(xs){
+                Ok(mut v) => Ok(v.pop().unwrap()),
+                Err(e) => Err(e),
             }
         }
     }

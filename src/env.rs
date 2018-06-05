@@ -27,6 +27,18 @@ impl Env{
         self.envs[n].insert(key,val);
     }
 
+    pub fn let_start(&mut self){
+        self.envs.push(HashMap::new());
+    }
+
+    pub fn let_end(&mut self){
+        if self.envs.len() == 1{
+            eprintln!("Something wrong in let_end.");
+        }else{
+            self.envs.pop();
+        }
+    }
+
     fn defualt_env()->HashMap<String,MalType>{
         let mut env = HashMap::new();
 
@@ -48,6 +60,9 @@ impl Env{
         env.insert(
             "def!".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Def));
+        env.insert(
+            "let*".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Let));
 
         env
     }

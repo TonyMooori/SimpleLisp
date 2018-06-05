@@ -15,7 +15,7 @@ fn to_integer_vec(xs: Vec<MalType>)->Result<Vec<i64>,String>{
     Ok(v)
 }
 
-fn sequence_to_pair(xs: Vec<MalType>)->Result<Vec<(MalType,MalType)>,String>{
+pub fn sequence_to_pair(xs: Vec<MalType>)->Result<Vec<(MalType,MalType)>,String>{
     // (:a "s" :b "d")->[(:a "s"),(:b "d")]
     let mut v = Vec::new();
 

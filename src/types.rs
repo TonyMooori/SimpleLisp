@@ -39,4 +39,49 @@ pub enum BuiltInFunction{
     HashMap,
     Exit,
     Def,
+    Let,
+}
+
+impl MalType{
+    pub fn unwrap_list_vector(&self) -> Option<Vec<MalType>>{
+        if let MalType::Vector(v) = self{
+            Some(v.clone())
+        }else if let MalType::List(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
+
+    pub fn unwrap_integer(&self) -> Option<i64>{
+        if let MalType::Integer(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
+    
+    pub fn unwrap_keyword(&self) -> Option<String>{
+        if let MalType::Keyword(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
+    
+    pub fn unwrap_bool(&self) -> Option<bool>{
+        if let MalType::Bool(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
+    
+    pub fn unwrap_identifier(&self) -> Option<String>{
+        if let MalType::Identifier(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
 }
