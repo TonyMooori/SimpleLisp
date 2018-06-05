@@ -23,7 +23,7 @@ pub enum MalType{
     Bool(bool),
     Vector(Vec<MalType>),
     List(Vec<MalType>),
-    Function(Vec<MalType>),
+    Function(Vec<String>,Box<MalType>,bool), // varnames, body, & rest
     BuiltInFunction(BuiltInFunction), 
     Keyword(String),
     Dict(HashMap<String,MalType>),
@@ -43,6 +43,18 @@ pub enum BuiltInFunction{
 }
 
 impl MalType{
+    pub fn unwrap_function(&self)->Option<(Vec<String>,MalType,bool)>{
+        if let MalType::Function(a,b,c) = self{
+            // let b = b;
+            // let b = (*b).clone();
+            // let b = *b;
+            // Some((a.clone(),b,c.clone()))
+            Some((a.clone(),*((*b).clone()),c.clone()))
+        }else{
+            None
+        }
+    }
+
     pub fn unwrap_list_vector(&self) -> Option<Vec<MalType>>{
         if let MalType::Vector(v) = self{
             Some(v.clone())

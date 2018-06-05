@@ -30,27 +30,22 @@ impl Interpreter{
         if xs.len() == 0{
             Ok(MalType::List(xs))
         }else{
-            let f = self.eval(xs[0].clone());
+            let f = match self.eval(xs[0].clone()){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
             xs.remove(0);
-
-            if f.is_err(){
-                return f;
-            }
-
-            let f = f.unwrap();
-
-            // let xs = self.eval_sequence(xs);
-            // if let Err(e) = xs{
-            //     return Err(e);
-            // }
-            // let xs = xs.unwrap();
 
             match f {
                 MalType::BuiltInFunction(func_type) => {
                     self.call_built_in_function(func_type,xs)
                 },
-                MalType::Function(_) =>{
-                    Err(format!("Unimplemented."))
+                MalType::Function(_,_,_) =>{
+                    let (argnames,body,is_rest) = f.unwrap_function().unwrap();
+                    self.env.let_start();
+                    let ret = self.call_function(argnames,body,is_rest,xs);
+                    self.env.let_end();
+                    ret
                 },
                 _ =>{
                     Err(format!("{:?} is not callable.",f))
@@ -63,12 +58,9 @@ impl Interpreter{
         let mut ys = vec![];
 
         for x in xs{
-            let y = self.eval(x);
-            
-            if let Err(e) = y{
-                return Err(e);
-            }else{
-                ys.push(y.unwrap());
+            match self.eval(x){
+                Ok(y) => ys.push(y),
+                Err(e) => return Err(e),
             }
         }
 
@@ -84,6 +76,51 @@ impl Interpreter{
         }else{
             Ok(MalType::Vector(xs.unwrap()))
         }
+    }
+
+    fn call_function(&mut self,names: Vec<String>,body:MalType,is_rest:bool,args:Vec<MalType>)
+        -> Result<MalType,String>{
+        
+        // evaluate arguments
+        let args = match self.eval_sequence(args){
+            Err(e) => return Err(e),
+            Ok(v) => v,
+        };
+
+        if is_rest{
+            if names.len() - 1 > args.len() {
+                return Err(
+                    format!(
+                        "This function needs at least {} arguments, we got {}."
+                        ,names.len()-1
+                        ,args.len()));
+            }
+            
+            // split normal argument and & rest arguments
+            let (args,rest_val) = args.split_at(names.len()-1);
+            let (names,rest_name) = names.split_at(names.len()-1);
+
+            // assign arguments
+            for (name,val) in names.into_iter().zip(args.into_iter()){
+                self.env.set(name.clone(),val.clone());
+            }
+            self.env.set(rest_name[0].clone(),MalType::List(rest_val.to_vec()));
+        }else{
+            if names.len() != args.len(){
+                return Err(
+                    format!(
+                        "This function needs exactly {} arguments, we got {}."
+                        ,names.len()
+                        ,args.len()));
+            }
+
+            // assign arguments
+            for (name,val) in names.into_iter().zip(args.into_iter()){
+                self.env.set(name,val);
+            }
+        }
+
+        self.eval(body)
     }
 
     fn call_built_in_function(&mut self,func_type:BuiltInFunction,xs: Vec<MalType>)
@@ -149,13 +186,11 @@ impl Interpreter{
             Err(format!("The function def! needs exactly 2 arguments, we got {}.",xs.len()))
         }else{
             let sym = xs[0].clone();
-            let val = self.eval(xs[1].clone());
+            let val = match self.eval(xs[1].clone()){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
             
-            if let Err(e) = val{
-                return Err(e);
-            }
-            let val = val.unwrap();
-
             match sym{
                 MalType::Identifier(ident) => {
                     self.env.set(ident.clone(),val);
@@ -167,20 +202,21 @@ impl Interpreter{
             }
         }
     }
+
     fn mal_let(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
         if xs.len() <= 2{
             Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
         }else{
-            let vars = xs[0].unwrap_list_vector();
-            if vars.is_none(){
-                return Err(format!("The first argument of let* must be list or vector. We get {:?}.",xs[0]));
-            }
-            let vars = sequence_to_pair(vars.unwrap());
-            if let Err(e) = vars{
-                return Err(e);
-            }
-            let vars = vars.unwrap();
-            
+            let vars = match xs[0].unwrap_list_vector(){
+                Some(v)=>v,
+                None => return Err(format!("The first argument of let* must be list or vector. We get {:?}.",xs[0])),
+            };
+
+            let vars = match sequence_to_pair(vars){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
+
             for (name,val) in vars{
                 if let Err(e) = self.mal_def(vec![name,val]){
                     return Err(e)
