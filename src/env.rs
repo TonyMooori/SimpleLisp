@@ -76,6 +76,9 @@ impl Env{
             "=".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Eq));
         env.insert(
+            "quote".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Quote));
+        env.insert(
             "inc".to_string(),
             MalType::Function(
                 vec!["n".to_string()],
@@ -89,8 +92,8 @@ impl Env{
         env.insert(
             "list".to_string(),
             MalType::Function(
-                vec!["rest".to_string()],
-                Box::new(MalType::Identifier("rest".to_string())),
+                vec!["r".to_string()],
+                Box::new(MalType::Identifier("r".to_string())),
                 true));
         env
     }

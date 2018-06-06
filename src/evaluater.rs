@@ -203,6 +203,14 @@ impl Interpreter{
                     }
                 }
             },
+            BuiltInFunction::Quote => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function quote needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    Ok(xs[0].clone())
+                }
+            }
         }
     }
 }

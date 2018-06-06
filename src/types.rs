@@ -45,6 +45,7 @@ pub enum BuiltInFunction{
     LoadFile,
     Lt,
     Eq,
+    Quote,
 }
 
 impl MalType{
