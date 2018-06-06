@@ -177,7 +177,14 @@ impl Interpreter{
                 self.mal_if(xs)
             },
             BuiltInFunction::LoadFile =>{
-                Err(format!("unimplemented LoadFile"))
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function quote needs exactly 1 arguments, we got {}.",xs.len()))
+                }else if let MalType::Str(filename) = xs[0].clone(){
+                    self.load_file(filename)
+                }else{
+                    Err(format!(""))
+                }
             },
             BuiltInFunction::Lt =>{
                 if xs.len() != 2{

@@ -1,0 +1,5 @@
+(def! dec (fn* [n] (- n 1)))
+(def! inc (fn* [n] (+ n 1)))
+(def! list (fn* [& r] r))
+(def! not (fn* [c] (if c false true)))
+

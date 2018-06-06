@@ -79,22 +79,8 @@ impl Env{
             "quote".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Quote));
         env.insert(
-            "inc".to_string(),
-            MalType::Function(
-                vec!["n".to_string()],
-                Box::new(MalType::List(
-                    vec![
-                        MalType::BuiltInFunction(BuiltInFunction::Add),
-                        MalType::Identifier("n".to_string()),
-                        MalType::Integer(1)])),
-                false,
-            ));
-        env.insert(
-            "list".to_string(),
-            MalType::Function(
-                vec!["r".to_string()],
-                Box::new(MalType::Identifier("r".to_string())),
-                true));
+            "load-file".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::LoadFile));
         env
     }
 }
