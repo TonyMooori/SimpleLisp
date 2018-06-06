@@ -70,6 +70,12 @@ impl Env{
             "if".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::If));
         env.insert(
+            "<".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Lt));
+        env.insert(
+            "=".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Eq));
+        env.insert(
             "inc".to_string(),
             MalType::Function(
                 vec!["n".to_string()],

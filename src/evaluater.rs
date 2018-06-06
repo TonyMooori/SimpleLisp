@@ -128,36 +128,31 @@ impl Interpreter{
 
         match func_type{
             BuiltInFunction::Add => {
-                let xs = self.eval_sequence(xs);
-                match xs{
+                match self.eval_sequence(xs){
                     Ok(ys) => mal_add(ys),
                     Err(e) => Err(e),
                 }
             },
             BuiltInFunction::Sub => {
-                let xs = self.eval_sequence(xs);
-                match xs{
+                match self.eval_sequence(xs){
                     Ok(ys) => mal_sub(ys),
                     Err(e) => Err(e),
                 }
             },
             BuiltInFunction::Mul => {
-                let xs = self.eval_sequence(xs);
-                match xs{
+                match self.eval_sequence(xs){
                     Ok(ys) => mal_mul(ys),
                     Err(e) => Err(e),
                 }
             },
             BuiltInFunction::Div => {
-                let xs = self.eval_sequence(xs);
-                match xs{
+                match self.eval_sequence(xs){
                     Ok(ys) => mal_div(ys),
                     Err(e) => Err(e),
                 }
             },
             BuiltInFunction::HashMap => {
-                let xs = self.eval_sequence(xs);
-                match xs{
+                match self.eval_sequence(xs){
                     Ok(ys) => mal_hashmap(ys),
                     Err(e) => Err(e),
                 }
@@ -179,8 +174,35 @@ impl Interpreter{
                 self.mal_fn(xs)
             },
             BuiltInFunction::If =>{
-                Err(format!("unimplemented if*"))
-            }
+                self.mal_if(xs)
+            },
+            BuiltInFunction::LoadFile =>{
+                Err(format!("unimplemented LoadFile"))
+            },
+            BuiltInFunction::Lt =>{
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function < needs exactly 2 arguments, we got {}."
+                        ,xs.len()))
+                }else{
+                    match self.eval_sequence(xs){
+                        Ok(ys) => mal_lt(ys),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::Eq =>{
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function = needs exactly 2 arguments, we got {}."
+                        ,xs.len()))
+                }else{
+                    match self.eval_sequence(xs){
+                        Ok(ys) => mal_eq(ys),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
         }
     }
 }
@@ -213,7 +235,7 @@ impl Interpreter{
         if xs.len() <= 2{
             Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
         }else{
-            let vars = match xs[0].unwrap_list_vector(){
+            let vars = match xs[0].unwrap_sequence(){
                 Some(v)=>v,
                 None => return Err(format!(
                     "The first argument of let* must be list or vector. We get {:?}.",xs[0])),
@@ -285,5 +307,32 @@ impl Interpreter{
 
 
         Ok(MalType::Function(names,Box::new(xs[1].clone()),is_rest))
+    }
+
+    fn mal_if(&mut self,xs: Vec<MalType>)->Result<MalType,String>{
+        if xs.len() < 2 || xs.len() > 3{
+            return Err(format!(
+                "The function if needs 2 or 3 arguments, we got {}.",xs.len()));
+        }
+
+        let cond = match self.eval(xs[0].clone()){
+            Ok(v) => match v{
+                MalType::Nil => false,
+                MalType::Bool(b) => b,
+                _ => true,
+            },
+            Err(e) => return Err(e),
+        };
+
+        if cond{
+            self.eval(xs[1].clone())
+        }else{
+            if xs.len() == 3{
+                self.eval(xs[2].clone())
+            }else{
+                Ok(MalType::Nil)
+            }
+        }
+
     }
 }

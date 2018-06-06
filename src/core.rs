@@ -139,3 +139,25 @@ pub fn mal_hashmap(xs: Vec<MalType>)->Result<MalType,String>{
         Ok(MalType::Dict(hm))
     }
 }
+
+pub fn mal_lt(xs: Vec<MalType>)->Result<MalType,String>{
+    let xs = match to_integer_vec(xs){
+        Ok(v) => v,
+        Err(e) => return Err(e),
+    };
+    
+    Ok(MalType::Bool(xs[0]<xs[1]))
+}
+
+pub fn mal_eq(mut xs: Vec<MalType>)->Result<MalType,String>{
+    let a = xs.pop().unwrap();
+    let b = xs.pop().unwrap();
+
+    if let Some(v1) = a.unwrap_sequence(){
+        if let Some(v2) = b.unwrap_sequence(){
+            return Ok(MalType::Bool(v1==v2));
+        }
+    }
+
+    Ok(MalType::Bool(a==b))
+}

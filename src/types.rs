@@ -42,6 +42,9 @@ pub enum BuiltInFunction{
     Let,
     Fn,
     If,
+    LoadFile,
+    Lt,
+    Eq,
 }
 
 impl MalType{
@@ -57,7 +60,7 @@ impl MalType{
         }
     }
 
-    pub fn unwrap_list_vector(&self) -> Option<Vec<MalType>>{
+    pub fn unwrap_sequence(&self) -> Option<Vec<MalType>>{
         if let MalType::Vector(v) = self{
             Some(v.clone())
         }else if let MalType::List(v) = self{
