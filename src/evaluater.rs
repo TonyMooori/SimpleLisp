@@ -123,7 +123,7 @@ impl Interpreter{
         self.eval(body)
     }
 
-    fn call_built_in_function(&mut self,func_type:BuiltInFunction,xs: Vec<MalType>)
+    fn call_built_in_function(&mut self,func_type:BuiltInFunction,mut xs: Vec<MalType>)
         -> Result<MalType,String>{
 
         match func_type{
@@ -217,7 +217,29 @@ impl Interpreter{
                 }else{
                     Ok(xs[0].clone())
                 }
-            }
+            },
+            BuiltInFunction::First => {
+                if xs.len() != 1{
+                    return Err(format!(
+                        "The function first needs exactly 1 arguments, we got {}.",xs.len()))
+                }
+
+                match self.eval(xs.pop().unwrap()){
+                    Ok(y) => mal_first(y),
+                    Err(e) => Err(e),
+                }
+            },
+            BuiltInFunction::Rest => {
+                if xs.len() != 1{
+                    return Err(format!(
+                        "The function first needs exactly 1 arguments, we got {}.",xs.len()))
+                }
+
+                match self.eval(xs.pop().unwrap()){
+                    Ok(y) => mal_rest(y),
+                    Err(e) => Err(e),
+                }
+            },
         }
     }
 }

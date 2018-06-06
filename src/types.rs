@@ -46,6 +46,8 @@ pub enum BuiltInFunction{
     Lt,
     Eq,
     Quote,
+    First,
+    Rest,
 }
 
 impl MalType{
