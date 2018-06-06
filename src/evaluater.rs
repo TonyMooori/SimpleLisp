@@ -174,6 +174,12 @@ impl Interpreter{
                 let ret = self.mal_let(xs);
                 self.env.let_end();
                 ret
+            },
+            BuiltInFunction::Fn =>{
+                self.mal_fn(xs)
+            },
+            BuiltInFunction::If =>{
+                Err(format!("unimplemented if*"))
             }
         }
     }
@@ -209,7 +215,8 @@ impl Interpreter{
         }else{
             let vars = match xs[0].unwrap_list_vector(){
                 Some(v)=>v,
-                None => return Err(format!("The first argument of let* must be list or vector. We get {:?}.",xs[0])),
+                None => return Err(format!(
+                    "The first argument of let* must be list or vector. We get {:?}.",xs[0])),
             };
 
             let vars = match sequence_to_pair(vars){
@@ -229,5 +236,54 @@ impl Interpreter{
                 Err(e) => Err(e),
             }
         }
+    }
+
+    fn mal_fn(&mut self,xs: Vec<MalType>)->Result<MalType,String>{
+        // (fn* [n] (+ n 1))
+        if xs.len() != 2{
+            return Err(format!(
+                "The function fn* needs exactly 2 arguments, we got {}.",xs.len()))
+        }
+        // take out vec from xs[1]
+        let arg_vec = match xs[0].clone() {
+            MalType::Vector(v) => v,
+            MalType::List(v) => v,
+            _ => return Err(format!(
+                "The second argument of fn* must be sequcence, we got {:?}.",xs[1])),
+        };
+
+        // take out parameter names from vec
+        let mut names = vec![];
+        for arg in arg_vec{
+            match arg.unwrap_identifier(){
+                Some(v) => names.push(v),
+                None => return Err(format!(
+                    "The argument name is must be identifier, we got {:?}.",arg))
+            }
+        }
+
+        // detect position of & and remove it
+        let mut is_rest = false;
+        for i in 0..names.len(){
+            if names[i] != "&" {
+                continue;
+            }
+
+            if i == names.len() - 2{
+                is_rest = true;
+            }else{
+                return Err(format!(
+                    "The {} nth parameter cannot be variadic function parameter because this is not the last parameter."
+                    ,i+2));
+            }
+        }
+
+        if is_rest{
+            let pos = names.len() - 2;
+            names.remove(pos);
+        }
+
+
+        Ok(MalType::Function(names,Box::new(xs[1].clone()),is_rest))
     }
 }

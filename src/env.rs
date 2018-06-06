@@ -64,6 +64,12 @@ impl Env{
             "let*".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Let));
         env.insert(
+            "fn*".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Fn));
+        env.insert(
+            "if".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::If));
+        env.insert(
             "inc".to_string(),
             MalType::Function(
                 vec!["n".to_string()],

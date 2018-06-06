@@ -40,6 +40,8 @@ pub enum BuiltInFunction{
     Exit,
     Def,
     Let,
+    Fn,
+    If,
 }
 
 impl MalType{
