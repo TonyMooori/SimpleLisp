@@ -2,4 +2,4 @@
 (def! inc (fn* [n] (+ n 1)))
 (def! list (fn* [& r] r))
 (def! not (fn* [c] (if c false true)))
-
+(def! nil? (fn* [n] (= nil n)))

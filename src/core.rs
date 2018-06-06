@@ -177,14 +177,14 @@ pub fn mal_first(x: MalType)->Result<MalType,String>{
 pub fn mal_rest(x: MalType)->Result<MalType,String>{
     if let MalType::Vector(mut v) = x{
         if v.len() == 0 {
-            Ok(MalType::Nil)
+            Ok(MalType::Vector(Vec::new()))
         }else{
             v.remove(0);
             Ok(MalType::Vector(v))
         }
     }else if let MalType::List(mut v)=x{
         if v.len() == 0 {
-            Ok(MalType::Nil)
+            Ok(MalType::List(Vec::new()))
         }else{
             v.remove(0);
             Ok(MalType::List(v))
