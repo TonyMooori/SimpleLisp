@@ -11,15 +11,9 @@ pub struct Interpreter{
 
 impl Interpreter{
     pub fn new()->Interpreter{
-        let mut lisp = Interpreter{
+        Interpreter{
             env : Env::new(),
-        };
-        match lisp.load_file("lib.mal".to_string()){
-            Ok(_) => {},
-            Err(_) => {} ,
         }
-
-        lisp
     }
 }
 

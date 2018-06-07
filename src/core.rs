@@ -193,3 +193,19 @@ pub fn mal_rest(x: MalType)->Result<MalType,String>{
         Err(format!("The argument of rest must be sequence"))
     }
 }
+
+pub fn mal_typestr(x:MalType)->Result<MalType,String>{
+    Ok(MalType::Str(match x{
+        MalType::Identifier(_) => "symbol",
+        MalType::Integer(_) => "int",
+        MalType::Str(_) => "str",
+        MalType::Bool(_) => "bool",
+        MalType::Vector(_) => "vector",
+        MalType::List(_) => "list",
+        MalType::Function(_,_,_) => "func",
+        MalType::BuiltInFunction(_) => "built-in-func",
+        MalType::Keyword(_) => "keyword",
+        MalType::Dict(_) => "dict",
+        MalType::Nil => "nil",
+    }.to_string()))
+}

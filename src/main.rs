@@ -13,5 +13,10 @@ use interpreter::Interpreter;
 fn main() {
     let mut lisp = Interpreter::new();
 
+    match lisp.load_file("lib.mal".to_string()){
+        Ok(_) => {},
+        Err(e) => println!("Setup error: {}",e) ,
+    }
+
     lisp.repl_loop();
 }

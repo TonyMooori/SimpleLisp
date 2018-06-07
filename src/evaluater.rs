@@ -240,6 +240,17 @@ impl Interpreter{
                     Err(e) => Err(e),
                 }
             },
+            BuiltInFunction::TypeStr => {
+                if xs.len() != 1{
+                    return Err(format!(
+                        "The function type-str needs exactly 1 arguments, we got {}.",xs.len()))
+                }
+                
+                match self.eval(xs.pop().unwrap()){
+                    Ok(y) => mal_typestr(y),
+                    Err(e) => Err(e),
+                }
+            }
         }
     }
 }

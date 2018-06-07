@@ -87,6 +87,9 @@ impl Env{
         env.insert(
             "rest".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Rest));
+        env.insert(
+            "type-str".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::TypeStr));
         env
     }
 }

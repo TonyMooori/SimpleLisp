@@ -3,3 +3,6 @@
 (def! list (fn* [& r] r))
 (def! not (fn* [c] (if c false true)))
 (def! nil? (fn* [n] (= nil n)))
+(def! list? (fn* [xs] (= (type-str xs) "list")))
+(def! vector? (fn* [xs] (= (type-str xs) "vector")))
+(def! bool? (fn* [n] (= (type-str n) "bool")))
