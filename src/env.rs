@@ -90,6 +90,9 @@ impl Env{
         env.insert(
             "type-str".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::TypeStr));
+        env.insert(
+            "insert".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Insert));
         env
     }
 }

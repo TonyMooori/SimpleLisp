@@ -250,6 +250,12 @@ impl Interpreter{
                     Ok(y) => mal_typestr(y),
                     Err(e) => Err(e),
                 }
+            },
+            BuiltInFunction::Insert => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => mal_insert(ys),
+                    Err(e) => Err(e),
+                }
             }
         }
     }
@@ -280,7 +286,7 @@ impl Interpreter{
     }
 
     fn mal_let(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
-        if xs.len() <= 2{
+        if xs.len() < 2{
             Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
         }else{
             let vars = match xs[0].unwrap_sequence(){

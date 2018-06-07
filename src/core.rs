@@ -209,3 +209,42 @@ pub fn mal_typestr(x:MalType)->Result<MalType,String>{
         MalType::Nil => "nil",
     }.to_string()))
 }
+
+pub fn mal_insert(mut xs:Vec<MalType>)->Result<MalType,String>{
+    if xs.len() != 3{
+        Err(format!(
+            "The function insert needs exactly 3 arguments, we got {}.",xs.len()))
+    }else{
+        let element = xs.pop().unwrap();
+        let index = match xs.pop().unwrap(){
+            MalType::Integer(n) => n,
+            a => return Err(format!(
+                "The second argument of insert must be integer, we got {:?}.",a))
+        };
+        if index < 0 {
+            return Err(format!(
+                "The index is must be positive, get {}.",index))
+        };
+        let index = index as usize;
+        let ys = xs.pop().unwrap();
+        let is_list = match ys{
+            MalType::List(_) => true,
+            MalType::Vector(_) => false,
+            a => return Err(format!(
+                "The first argument of insert must be sequence, we got {:?}.",a))
+        };
+        let mut ys = ys.unwrap_sequence().unwrap();
+        if ys.len() < index {
+            return Err(format!(
+                "The index must be little than the length."));
+        }
+
+        ys.insert(index,element);
+
+        if is_list{
+            Ok(MalType::List(ys))
+        }else{
+            Ok(MalType::Vector(ys))
+        }
+    }
+}

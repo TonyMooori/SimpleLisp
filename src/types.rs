@@ -49,6 +49,7 @@ pub enum BuiltInFunction{
     First,
     Rest,
     TypeStr,
+    Insert, //-> cons, append
     // Err,
     // Apply,
 }

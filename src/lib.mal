@@ -6,3 +6,54 @@
 (def! list? (fn* [xs] (= (type-str xs) "list")))
 (def! vector? (fn* [xs] (= (type-str xs) "vector")))
 (def! bool? (fn* [n] (= (type-str n) "bool")))
+(def! empty? (fn* [xs] 
+    (if (list? xs)
+        (= () xs)
+        (if (vector? xs)
+            (= [] xs)
+            nil))))
+(def! or (fn* [a b]
+    (if a true (if b true false))))
+(def! last (fn* [xs] 
+    (let [
+        y  (first xs)
+        ys (rest xs)
+    ]
+    (if (empty? ys)
+        y
+        (last ys)))))
+(def! do (fn* [& r] (last r)))
+(def! count (fn* [xs]
+    ; TODO: if not list or vertor , assert
+    (if (or (list? xs) (vector? xs))
+        (if (empty? xs)
+            0
+            (inc (count (rest xs))))
+        nil)))
+(def! nth (fn* [xs n]
+    ; TODO: if not list or vertor , assert
+    (if (= n 0)
+        (first x)
+        (nth (rest xs) (dec n)))))
+(def! > (fn* [a b] (< b a)))
+(def! >= (fn* [a b] (or (> a b) (= a b))))
+(def! <= (fn* [a b] (or (< a b) (= a b))))
+(def! not= (fn* [a b] (not (= a b))))
+(def! zero? (fn* [n] (= n 0)))
+(def! mod (fn* [n m]
+    (let* [
+        a (/ n m)
+        b (* a m)
+    ] (- n b))))
+(def! even? (fn* [n] (= 0 (mod n 2))))
+(def! odd? (fn* [n] (= 1 (mod n 2))))
+(def! string? (fn* [s] (= (type-str s) "str")))
+(def! cons (fn* [x xs] (insert xs 0 x)))
+(def! append (fn* [xs x] (insert xs (count xs) x)))
+(def! second (fn* [xs] (nth xs 1)))
+(def! range (fn* [n]
+    (if (>= 0 n)
+        ()
+        (append (range (dec n)) (dec n)))))
+
+
