@@ -162,15 +162,27 @@ pub fn mal_eq(mut xs: Vec<MalType>)->Result<MalType,String>{
     Ok(MalType::Bool(a==b))
 }
 
-pub fn mal_first(x: MalType)->Result<MalType,String>{
-    match x.unwrap_sequence(){
-        Some(mut xs) => if xs.len() == 0{
-            Ok(MalType::Nil)
-        }else{
-            Ok(xs.remove(0))
-        },
-        None => Err(format!(
-            "The argument of first must be sequence")),
+pub fn mal_nth(xs: MalType,n:MalType)->Result<MalType,String>{
+    let n = match n.unwrap_integer(){
+        Some(v) => v,
+        None => return Err(format!("The second argument of nth must be integer.")),
+    };
+    let xs = match xs.unwrap_sequence(){
+        Some(v) => v,
+        None => return Err(format!("The first argument of nth must be sequence."))
+    };
+    if n < 0{
+        return Err(format!(
+            "The second argument of nth must be 0 or positive number, we got {}.",n));
+    }
+    
+    let n = n as usize;
+
+    if xs.len() > n{
+        Ok(xs[n].clone())
+    }else{
+        Err(format!(
+            "The index is out of bounds."))
     }
 }
 

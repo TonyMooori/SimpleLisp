@@ -1,3 +1,4 @@
+(def! first (fn* [xs] (nth xs 0)))
 (def! dec (fn* [n] (- n 1)))
 (def! inc (fn* [n] (+ n 1)))
 (def! list (fn* [& r] r))
@@ -30,11 +31,6 @@
             0
             (inc (count (rest xs))))
         nil)))
-(def! nth (fn* [xs n]
-    ; TODO: if not list or vertor , assert
-    (if (= n 0)
-        (first x)
-        (nth (rest xs) (dec n)))))
 (def! > (fn* [a b] (< b a)))
 (def! >= (fn* [a b] (or (> a b) (= a b))))
 (def! <= (fn* [a b] (or (< a b) (= a b))))

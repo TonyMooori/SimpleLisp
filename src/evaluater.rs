@@ -218,16 +218,21 @@ impl Interpreter{
                     Ok(xs[0].clone())
                 }
             },
-            BuiltInFunction::First => {
-                if xs.len() != 1{
+            BuiltInFunction::Nth => {
+                if xs.len() != 2{
                     return Err(format!(
-                        "The function first needs exactly 1 arguments, we got {}.",xs.len()))
+                        "The function nth needs exactly 2 arguments, we got {}.",xs.len()))
                 }
+                let n = match self.eval(xs.pop().unwrap()){
+                    Ok(v) => v,
+                    Err(e) => return Err(e),
+                };
+                let xs = match self.eval(xs.pop().unwrap()){
+                    Ok(v) => v,
+                    Err(e) => return Err(e),
+                };
 
-                match self.eval(xs.pop().unwrap()){
-                    Ok(y) => mal_first(y),
-                    Err(e) => Err(e),
-                }
+                mal_nth(xs,n)
             },
             BuiltInFunction::Rest => {
                 if xs.len() != 1{

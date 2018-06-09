@@ -82,8 +82,8 @@ impl Env{
             "load-file".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::LoadFile));
         env.insert(
-            "first".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::First));
+            "nth".to_string(), 
+            MalType::BuiltInFunction(BuiltInFunction::Nth));
         env.insert(
             "rest".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Rest));

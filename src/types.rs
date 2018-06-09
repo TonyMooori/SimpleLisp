@@ -46,7 +46,7 @@ pub enum BuiltInFunction{
     Lt,
     Eq,
     Quote,
-    First,
+    Nth,
     Rest,
     TypeStr,
     Insert, //-> cons, append
