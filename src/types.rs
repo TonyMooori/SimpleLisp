@@ -49,7 +49,8 @@ pub enum BuiltInFunction{
     Nth,
     Rest,
     TypeStr,
-    Insert, //-> cons, append
+    Insert,
+    Eval,
     // Err,
     // Apply,
 }
