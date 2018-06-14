@@ -51,7 +51,7 @@ pub enum BuiltInFunction{
     TypeStr,
     Insert,
     Eval,
-    // Err,
+    Err,
     // Apply,
 }
 

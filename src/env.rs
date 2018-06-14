@@ -96,6 +96,9 @@ impl Env{
         env.insert(
             "eval".to_string(), 
             MalType::BuiltInFunction(BuiltInFunction::Eval));
+        env.insert(
+            "err".to_string(),
+            MalType::BuiltInFunction(BuiltInFunction::Err));
         env
     }
 }

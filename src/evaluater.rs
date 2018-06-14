@@ -273,6 +273,17 @@ impl Interpreter{
                     }
                 }
             },
+            BuiltInFunction::Err =>{
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function eval needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => mal_err(y),
+                        Err(e) => Err(e),
+                    }
+                }
+            }
         }
     }
 }

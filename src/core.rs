@@ -260,3 +260,12 @@ pub fn mal_insert(mut xs:Vec<MalType>)->Result<MalType,String>{
         }
     }
 }
+
+pub fn mal_err(x:MalType)->Result<MalType,String>{
+    match x{
+        MalType::Str(s) => 
+            Err(s),
+        _ =>
+            Err(format!("The argument of err function must be string"))
+    }
+}
