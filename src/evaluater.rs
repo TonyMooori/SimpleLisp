@@ -265,7 +265,7 @@ impl Interpreter{
             BuiltInFunction::Eval => {
                 if xs.len() != 1{
                     Err(format!(
-                        "The function eval needs exactly 1 arguments, we got {}.",xs.len()))
+                        "The function err needs exactly 1 arguments, we got {}.",xs.len()))
                 }else{
                     match self.eval(xs.pop().unwrap()){
                         Ok(y) => self.eval(y),

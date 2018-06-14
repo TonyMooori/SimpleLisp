@@ -51,3 +51,9 @@
     (if (>= 0 n)
         ()
         (append (range (dec n)) (dec n)))))
+(def! vec-to-list (fn* [xs]
+    (if (vector? xs)
+        (if (empty? xs)
+            ()
+            (cons (first xs) (vec-to-list (rest xs))))
+        (err))
