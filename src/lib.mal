@@ -56,4 +56,5 @@
         (if (empty? xs)
             ()
             (cons (first xs) (vec-to-list (rest xs))))
-        (err))
+        (err "The argument of vec-to-list must be vector"))))
+

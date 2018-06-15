@@ -43,6 +43,9 @@ impl Interpreter{
                 '{' => {
                     self.read_dict(lexer)
                 },
+                '\'' => {
+                    self.read_quote(lexer)
+                },
                 _ => {
                     Err(format!("Unexpected symbol: {} ",s))
                 }
@@ -86,6 +89,26 @@ impl Interpreter{
 
             TokenKind::Integer(n) 
                 => Ok(MalType::Integer(n)),
+        }
+    }
+
+    fn read_quote(&self,lexer:&mut Lexer)->Result<MalType,String>{
+        lexer.next().unwrap();
+
+        let next = self.read_form(lexer);
+        if next.is_err(){
+            next
+        }else{
+            let next = next.unwrap();
+            let v = {
+                let mut v = vec![];
+                v.push(MalType::BuiltInFunction(BuiltInFunction::Quote));
+                v.push(next);
+
+                v
+            };
+
+            Ok(MalType::List(v))
         }
     }
 
