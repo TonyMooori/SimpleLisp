@@ -151,7 +151,6 @@ impl Interpreter{
         let start = TokenKind::Symbol("{".to_string());
         let end = TokenKind::Symbol("}".to_string());
 
-        // TODO: implement hash-map function
         let o_hm = self.read_sequence(lexer,start,end);
 
         if let Err(s) = o_hm{

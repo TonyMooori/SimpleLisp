@@ -126,10 +126,10 @@ pub fn mal_hashmap(xs: Vec<MalType>)->Result<MalType,String>{
         for pair in pairs{
             let (x,y) = pair;
 
-            if let MalType::Keyword(_) = x {
-                hm.insert(format!("{:?}",x),y);
-            }else if let MalType::Str(_) = x {
-                hm.insert(format!("{:?}",x),y);
+            if let MalType::Keyword(k) = x {
+                hm.insert(k.clone(),y);
+            }else if let MalType::Str(s) = x {
+                hm.insert(format!(" {}",s),y);
             }else{
                 return Err(format!("{:?} is not supported as key of Dictonary",x));
             }
