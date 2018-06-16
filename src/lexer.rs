@@ -132,6 +132,7 @@ impl Lexer{
                         c => c,
                     }
                 );
+                backslash=false;
             }else if c == '\\'{
                 backslash = true;
             }else if c == '\"'{

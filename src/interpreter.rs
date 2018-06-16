@@ -50,15 +50,19 @@ impl Interpreter{
     }
 
     fn read_code(&self) -> String{
-        let mut s = String::new();       
-        // print!("user=>");
-        io::stdin().read_line(&mut s).unwrap();
-        
-        if s.trim() == ""{
-            s
-        }else{
-            format!("{}{}",s,self.read_code())
-        }
+        let mut s = String::new();
+
+        loop{
+            let mut new_line = String::new();
+            // println!("user=>");
+            io::stdin().read_line(&mut new_line).unwrap();
+
+            if new_line.trim() == ""{
+                return s
+            }else{
+                s = format!("{}{}",s,new_line);
+            }
+        } 
     }
 
     pub fn load_file(&mut self,filename:String)->Result<MalType,String>{
