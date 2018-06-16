@@ -334,6 +334,22 @@ impl Interpreter{
                     },
                     Err(e) => Err(e),
                 }
+            },
+            BuiltInFunction::Apply => {
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function apply needs exactly 2 arguments, we got {}.",xs.len()))
+                }else{
+                    let y = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    };
+                    let f = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    };
+                    self.mal_apply(f,y)
+                }
             }
         }
     }
@@ -475,5 +491,20 @@ impl Interpreter{
             }
         }
 
+    }
+
+    fn mal_apply(&mut self,f: MalType,y :MalType)->Result<MalType,String>{
+        if f.unwrap_function().is_none() && f.unwrap_build_in_function().is_none() {
+            return Err(format!("The first argument of apply must be function."))
+        }
+        let mut xs = if let Some(v) = y.unwrap_sequence(){
+            v
+        }else{
+            return Err(format!("The second argument of apply must be sequence."))
+        };
+
+        xs.insert(0,f);
+
+        self.eval(MalType::List(xs))
     }
 }

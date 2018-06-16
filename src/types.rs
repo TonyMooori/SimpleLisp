@@ -56,10 +56,10 @@ pub enum BuiltInFunction{
     PrintString,
     PrStr,
     Str,
-    // Apply,
+    Apply,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);23] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);24] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -83,6 +83,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);23] = [
     ("print-string",BuiltInFunction::PrintString),
     ("pr-str",BuiltInFunction::PrStr),
     ("str",BuiltInFunction::Str),
+    ("apply",BuiltInFunction::Apply),
 ];
 
 impl MalType{
@@ -214,6 +215,14 @@ impl MalType{
     
     pub fn unwrap_identifier(&self) -> Option<String>{
         if let MalType::Identifier(v) = self{
+            Some(v.clone())
+        }else{
+            None
+        }
+    }
+
+    pub fn unwrap_build_in_function(&self) -> Option<BuiltInFunction>{
+        if let MalType::BuiltInFunction(v) = self{
             Some(v.clone())
         }else{
             None
