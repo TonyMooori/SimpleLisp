@@ -283,6 +283,47 @@ impl Interpreter{
                         Err(e) => Err(e),
                     }
                 }
+            },
+            BuiltInFunction::PrintString => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => {
+                        for y in ys{
+                            match  y {
+                                MalType::Str(s) =>
+                                    print!("{}",s),
+                                _ => 
+                                    return Err(format!(
+                                        "The argument of print-string must be string."))
+                            }
+                        }
+                        Ok(MalType::Nil)
+                    },
+                    Err(e) => Err(e),
+                }
+            }
+            BuiltInFunction::PrStr => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => {
+                        let ys : Vec<String> = ys
+                            .into_iter()
+                            .map(|x| x.to_string(true))
+                            .collect();
+                        Ok(MalType::Str(ys.join(" ")))
+                    },
+                    Err(e) => Err(e),
+                }
+            },
+            BuiltInFunction::Str => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => {
+                        let ys : Vec<String> = ys
+                            .into_iter()
+                            .map(|x| x.to_string(false))
+                            .collect();
+                        Ok(MalType::Str(ys.join("")))
+                    },
+                    Err(e) => Err(e),
+                }
             }
         }
     }

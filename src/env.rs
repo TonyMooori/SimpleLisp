@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use types::{MalType,BuiltInFunction};
+use types::{MalType,BUILD_IN_FUNCTION_NAMES};
 
 pub struct Env{
     envs : Vec<HashMap<String,MalType>>,
@@ -42,63 +42,13 @@ impl Env{
     fn defualt_env()->HashMap<String,MalType>{
         let mut env = HashMap::new();
 
-        env.insert(
-            "+".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Add));
-        env.insert(
-            "-".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Sub));
-        env.insert(
-            "*".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Mul));
-        env.insert(
-            "/".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Div));
-        env.insert(
-            "exit".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Exit));
-        env.insert(
-            "def!".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Def));
-        env.insert(
-            "let*".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Let));
-        env.insert(
-            "fn*".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Fn));
-        env.insert(
-            "if".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::If));
-        env.insert(
-            "<".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Lt));
-        env.insert(
-            "=".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Eq));
-        env.insert(
-            "quote".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Quote));
-        env.insert(
-            "load-file".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::LoadFile));
-        env.insert(
-            "nth".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Nth));
-        env.insert(
-            "rest".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Rest));
-        env.insert(
-            "type-str".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::TypeStr));
-        env.insert(
-            "insert".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Insert));
-        env.insert(
-            "eval".to_string(), 
-            MalType::BuiltInFunction(BuiltInFunction::Eval));
-        env.insert(
-            "err".to_string(),
-            MalType::BuiltInFunction(BuiltInFunction::Err));
+        for (f,ftype) in &BUILD_IN_FUNCTION_NAMES{
+            env.insert(
+                f.to_string(),
+                MalType::BuiltInFunction(ftype.clone())
+            );
+        }
+
         env
     }
 }

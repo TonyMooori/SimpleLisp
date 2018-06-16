@@ -52,7 +52,116 @@ pub enum BuiltInFunction{
     Insert,
     Eval,
     Err,
+    PrintString,
+    PrStr,
+    Str,
     // Apply,
+}
+
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);23] = [
+    ("+",BuiltInFunction::Add),
+    ("-",BuiltInFunction::Sub),
+    ("*",BuiltInFunction::Mul),
+    ("/",BuiltInFunction::Div),
+    ("hash-map",BuiltInFunction::HashMap),
+    ("exit",BuiltInFunction::Exit),
+    ("def!",BuiltInFunction::Def),
+    ("let*",BuiltInFunction::Let),
+    ("fn*",BuiltInFunction::Fn),
+    ("if",BuiltInFunction::If),
+    ("load-file",BuiltInFunction::LoadFile),
+    ("<",BuiltInFunction::Lt),
+    ("=",BuiltInFunction::Eq),
+    ("quote",BuiltInFunction::Quote),
+    ("nth",BuiltInFunction::Nth),
+    ("rest",BuiltInFunction::Rest),
+    ("type-str",BuiltInFunction::TypeStr),
+    ("insert",BuiltInFunction::Insert),
+    ("eval",BuiltInFunction::Eval),
+    ("err",BuiltInFunction::Err),
+    ("print-string",BuiltInFunction::PrintString),
+    ("pr-str",BuiltInFunction::PrStr),
+    ("str",BuiltInFunction::Str),
+];
+
+impl MalType{
+    pub fn to_string(&self,print_readably:bool)->String{
+        match self{
+            MalType::Identifier(s) => {
+                s.clone()
+            },
+            MalType::Integer(n) => {
+                format!("{}",n)
+            },
+            MalType::Str(s) => {
+                if print_readably{
+                    format!("\"{}\"",
+                        s.replace("\n","\\n")
+                        .replace("\r","\\r")
+                        .replace("\t","\\t")
+                        .replace("\"","\\\""))
+                }else{
+                    s.clone()
+                }
+            },
+            MalType::Bool(b) => {
+                format!("{}",b)
+            },
+            MalType::Vector(v) => {
+                let xs : Vec<String> = v
+                    .iter()
+                    .map(|x| x.to_string(print_readably))
+                    .collect();
+                let joined = xs.join(" ");
+
+                format!("[{}]",joined)
+            },
+            MalType::List(v) => {
+                let xs : Vec<String> = v
+                    .iter()
+                    .map(|x| x.to_string(print_readably))
+                    .collect();
+                let joined = xs.join(" ");
+
+                format!("({})",joined)
+            },
+            MalType::Function(args,ast,flag)=>{
+                let mut args = args.clone();
+                if *flag{
+                    let idx = args.len()-1;
+                    args.insert(idx, "&".to_string());
+                }
+
+                format!("(fn* [{}] {})",
+                    args.join(" "),
+                    ast.to_string(print_readably))
+            },
+            MalType::BuiltInFunction(t) => {
+                for (fname,ftype) in &BUILD_IN_FUNCTION_NAMES{
+                    if ftype == t{
+                        return fname.to_string();
+                    }
+                }
+
+                format!("unknown-build-in-function-{:?}",t)
+            },
+            MalType::Keyword(k) => {
+                k.clone()
+            },
+            MalType::Nil => {
+                "nil".to_string()
+            },
+            MalType::Dict(d) => {
+                let mut xs = vec![];
+                for (key,val) in d{
+                    xs.push(format!("{} {}",key,val.to_string(print_readably)));
+                }
+                let joined = xs.join(",");
+
+                format!("{{{}}}",joined)
+            }
+        }
+    }
 }
 
 impl MalType{

@@ -28,7 +28,7 @@
         (if (empty? xs)
             0
             (inc (count (rest xs))))
-        nil)))
+        0)))
 (def! > (fn* [a b] (< b a)))
 (def! >= (fn* [a b] (or (> a b) (= a b))))
 (def! <= (fn* [a b] (or (< a b) (= a b))))
