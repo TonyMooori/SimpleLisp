@@ -23,7 +23,8 @@ pub enum MalType{
     Bool(bool),
     Vector(Vec<MalType>),
     List(Vec<MalType>),
-    Function(Vec<String>,Box<MalType>,bool), // varnames, body, & rest
+    // varnames, body, & rest, local_env
+    Function(Vec<String>,Box<MalType>,bool,HashMap<String,MalType>), 
     BuiltInFunction(BuiltInFunction), 
     Keyword(String),
     Dict(HashMap<String,MalType>),
@@ -125,7 +126,7 @@ impl MalType{
 
                 format!("({})",joined)
             },
-            MalType::Function(args,ast,flag)=>{
+            MalType::Function(args,ast,flag,_)=>{
                 let mut args = args.clone();
                 if *flag{
                     let idx = args.len()-1;
@@ -165,13 +166,13 @@ impl MalType{
 }
 
 impl MalType{
-    pub fn unwrap_function(&self)->Option<(Vec<String>,MalType,bool)>{
-        if let MalType::Function(a,b,c) = self{
+    pub fn unwrap_function(&self)->Option<(Vec<String>,MalType,bool,HashMap<String,MalType>)>{
+        if let MalType::Function(a,b,c,d) = self{
             // let b = b;
             // let b = (*b).clone();
             // let b = *b;
             // Some((a.clone(),b,c.clone()))
-            Some((a.clone(),*((*b).clone()),c.clone()))
+            Some((a.clone(),*((*b).clone()),c.clone(),d.clone()))
         }else{
             None
         }
@@ -216,6 +217,33 @@ impl MalType{
             Some(v.clone())
         }else{
             None
+        }
+    }
+}
+
+impl MalType{
+    pub fn get_all_identifier(&self) -> Vec<String>{
+        match self {
+            MalType::Identifier(s) => vec![s.clone()],
+            MalType::List(xs) => {
+                let mut ys = Vec::new();
+                
+                for x in xs.iter(){
+                    ys.append(&mut (x.get_all_identifier()));
+                }
+
+                ys
+            },
+            MalType::Vector(xs) => {
+                let mut ys = Vec::new();
+                
+                for x in xs.iter(){
+                    ys.append(&mut (x.get_all_identifier()));
+                }
+
+                ys
+            },
+            _ => Vec::new(),
         }
     }
 }

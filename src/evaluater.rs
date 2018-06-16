@@ -2,6 +2,7 @@ use interpreter::Interpreter;
 use types::{MalType,BuiltInFunction};
 use core::*;
 use std::process::exit;
+use std::collections::HashMap;
 
 impl Interpreter{
     pub fn eval(&mut self,ast:MalType)-> Result<MalType,String>{
@@ -40,10 +41,10 @@ impl Interpreter{
                 MalType::BuiltInFunction(func_type) => {
                     self.call_built_in_function(func_type,xs)
                 },
-                MalType::Function(_,_,_) =>{
-                    let (argnames,body,is_rest) = f.unwrap_function().unwrap();
+                MalType::Function(_,_,_,_) =>{
+                    let (argnames,body,is_rest,local_env) = f.unwrap_function().unwrap();
                     self.env.let_start();
-                    let ret = self.call_function(argnames,body,is_rest,xs);
+                    let ret = self.call_function(argnames,body,is_rest,xs,local_env);
                     self.env.let_end();
                     ret
                 },
@@ -78,9 +79,18 @@ impl Interpreter{
         }
     }
 
-    fn call_function(&mut self,names: Vec<String>,body:MalType,is_rest:bool,args:Vec<MalType>)
+    fn call_function(
+        &mut self,names: Vec<String>,
+        body:MalType,
+        is_rest:bool,
+        args:Vec<MalType>,
+        local_env:HashMap<String,MalType>)
         -> Result<MalType,String>{
         
+        for (key,val) in local_env{
+            self.env.set(key,val);
+        }
+
         // evaluate arguments
         let args = match self.eval_sequence(args){
             Err(e) => return Err(e),
@@ -427,8 +437,17 @@ impl Interpreter{
             names.remove(pos);
         }
 
+        let ast = xs[1].clone();
+        let idents = ast.get_all_identifier();
+        let mut local_env = HashMap::new();
 
-        Ok(MalType::Function(names,Box::new(xs[1].clone()),is_rest))
+        for ident in idents{
+            if let Some(v) = self.env.get(&ident){
+                local_env.insert(ident,v);
+            }
+        }
+
+        Ok(MalType::Function(names,Box::new(ast),is_rest,local_env))
     }
 
     fn mal_if(&mut self,xs: Vec<MalType>)->Result<MalType,String>{
