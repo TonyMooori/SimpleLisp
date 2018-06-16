@@ -55,4 +55,11 @@
             ()
             (cons (first xs) (vec-to-list (rest xs))))
         (err "The argument of vec-to-list must be vector"))))
-
+(def! map (fn* [f xs]
+    (if (empty? xs)
+        ()
+        (let* [
+            x (first xs)
+            xs (rest xs)
+        ]
+        (cons (f x) (map f xs))))))
