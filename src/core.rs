@@ -155,7 +155,23 @@ pub fn mal_eq(mut xs: Vec<MalType>)->Result<MalType,String>{
 
     if let Some(v1) = a.unwrap_sequence(){
         if let Some(v2) = b.unwrap_sequence(){
-            return Ok(MalType::Bool(v1==v2));
+            if v1.len() != v2.len(){
+                return Ok(MalType::Bool(false));
+            }
+
+            for i in 0..v1.len(){
+                let a = v1[i].clone();
+                let b = v2[i].clone();
+
+                // 一つずつ確認していって一つでも間違ってたらfalse
+                match mal_eq(vec![a,b]){
+                    Ok(v) => if !v.unwrap_bool().unwrap(){
+                        return Ok(MalType::Bool(false));
+                    },
+                    _ => {},
+                }
+            }
+            return Ok(MalType::Bool(true));
         }
     }
 

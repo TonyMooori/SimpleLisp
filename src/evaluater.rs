@@ -312,16 +312,11 @@ impl Interpreter{
                 }
             }
             BuiltInFunction::PrStr => {
-                match self.eval_sequence(xs){
-                    Ok(ys) => {
-                        let ys : Vec<String> = ys
-                            .into_iter()
-                            .map(|x| x.to_string(true))
-                            .collect();
-                        Ok(MalType::Str(ys.join(" ")))
-                    },
-                    Err(e) => Err(e),
-                }
+                let ys : Vec<String> = xs
+                    .into_iter()
+                    .map(|x| x.to_string(true))
+                    .collect();
+                Ok(MalType::Str(ys.join(" ")))
             },
             BuiltInFunction::Str => {
                 match self.eval_sequence(xs){
