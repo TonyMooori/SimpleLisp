@@ -488,10 +488,18 @@ impl Interpreter{
 
     }
 
-    fn mal_apply(&mut self,f: MalType,y :MalType)->Result<MalType,String>{
+    fn mal_apply(&mut self,f: MalType,mut y :MalType)->Result<MalType,String>{
         if f.unwrap_function().is_none() && f.unwrap_build_in_function().is_none() {
             return Err(format!("The first argument of apply must be function."))
         }
+
+        if let MalType::Identifier(s) = y{
+            y = match self.eval_identifier(s){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
+        }
+
         let mut xs = if let Some(v) = y.unwrap_sequence(){
             v
         }else{
@@ -499,7 +507,7 @@ impl Interpreter{
         };
 
         xs.insert(0,f);
-
+        
         self.eval(MalType::List(xs))
     }
 }

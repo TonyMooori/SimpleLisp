@@ -65,4 +65,6 @@
         (cons (f x) (map f xs))))))
 (def! prn (fn* [& r]
     (print-string (apply pr-str r))))
+(def! println (fn* [& r] 
+    (print-string (apply str r) "\r\n")))
     
