@@ -21,7 +21,6 @@
         r (nth xs (dec n))
     ] 
     r)))
-(def! do (fn* [& r] (last r)))
 (def! count (fn* [xs]
     ; TODO: if not list or vertor , assert
     (if (or (list? xs) (vector? xs))

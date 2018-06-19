@@ -5,19 +5,108 @@ use std::process::exit;
 use std::collections::HashMap;
 
 impl Interpreter{
-    pub fn eval(&mut self,ast:MalType)-> Result<MalType,String>{
+    pub fn eval(&mut self,mut ast:MalType)-> Result<MalType,String>{
         // eprintln!("evaluating {:?} in eval",ast);
+        let mut result : Result<MalType,String> = Ok(MalType::Nil);
+        let mut n_let = 0;
+        
+        loop{
+            if let MalType::Identifier(ident) = ast{
+                result = self.eval_identifier(ident);
+                break;
+            }else if let MalType::Vector(v) = ast{
+                result = self.eval_vector(v);
+                break;
+            }else if ast.is_list() == false {
+                result = Ok(ast);
+                break;
+            }
 
-        match ast{
-            MalType::Identifier(ident) 
-                => self.eval_identifier(ident),
-            MalType::List(v)
-                => self.eval_list(v),
-            MalType::Vector(v)
-                => self.eval_vector(v),
-            _
-                => Ok(ast)
+            // listの場合
+            let mut xs = ast.unwrap_sequence().unwrap();
+
+            if xs.len() == 0{
+                result = Ok(MalType::List(xs));
+                break;
+            }
+            
+            // xsは引数のみとなる
+            let f = match self.eval(xs.remove(0)){
+                Ok(v) => v,
+                Err(e) => {
+                    result = Err(e);
+                    break;
+                }
+            };
+
+            if let MalType::BuiltInFunction(func_type) = f{
+                if func_type == BuiltInFunction::If{
+                    ast = match self.ready_eval_if(xs){
+                        Ok(v) => v,
+                        Err(e) => {
+                            result = Err(e);
+                            break;
+                        }
+                    }
+                }else if func_type == BuiltInFunction::Let{
+                    self.env.let_start();
+                    n_let += 1;
+                    let mut let_body = match self.ready_eval_let(xs){
+                        Ok(v) => v.unwrap_sequence().unwrap(),
+                        Err(e) => {
+                            result = Err(e);
+                            break;
+                        }
+                    };
+                    // letの中身をdoの引数として評価する
+                    let_body.insert(0,MalType::BuiltInFunction(BuiltInFunction::Do));
+                    ast = MalType::List(let_body);
+                }else if func_type == BuiltInFunction::Do{
+                    if xs.len() == 0{
+                        result = Ok(MalType::Nil);
+                        break;
+                    }
+
+                    // 一番うしろのastは出しておく
+                    ast = xs.pop().unwrap();
+
+                    // 前のやつは普通に評価する
+                    for x in xs{
+                        if let Err(e) = self.eval(x){
+                            result = Err(e);
+                            break;
+                        }
+                    }
+
+                    if result.is_err(){
+                        break;
+                    }
+                }else{
+                    result = self.call_built_in_function(func_type,xs);
+                    break;
+                }
+            }else if let MalType::Function(_,_,_,_) = f{
+                let (argnames,body,is_rest,local_env) = f.unwrap_function().unwrap();
+                self.env.let_start();
+                n_let += 1;
+                ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env){
+                    Ok(body) => body,
+                    Err(e) => {
+                        result = Err(e);
+                        break;
+                    }
+                }
+            }else{
+                result = Err(format!("{:?} is not callable.",f));
+                break;
+            }
         }
+
+        for _ in 0..n_let{
+            self.env.let_end();
+        }
+
+        result
     }
 
     fn eval_identifier(&mut self,ident:String)-> Result<MalType,String>{
@@ -27,34 +116,6 @@ impl Interpreter{
         }
     }
 
-    fn eval_list(&mut self,mut xs:Vec<MalType>)-> Result<MalType,String>{
-        if xs.len() == 0{
-            Ok(MalType::List(xs))
-        }else{
-            let f = match self.eval(xs[0].clone()){
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
-            xs.remove(0);
-
-            match f {
-                MalType::BuiltInFunction(func_type) => {
-                    self.call_built_in_function(func_type,xs)
-                },
-                MalType::Function(_,_,_,_) =>{
-                    let (argnames,body,is_rest,local_env) = f.unwrap_function().unwrap();
-                    self.env.let_start();
-                    let ret = self.call_function(argnames,body,is_rest,xs,local_env);
-                    self.env.let_end();
-                    ret
-                },
-                _ =>{
-                    Err(format!("{:?} is not callable.",f))
-                }
-            }
-        }
-    }
-    
     fn eval_sequence(&mut self,xs:Vec<MalType>)->Result<Vec<MalType>,String>{
         let mut ys = vec![];
 
@@ -79,7 +140,7 @@ impl Interpreter{
         }
     }
 
-    fn call_function(
+    fn ready_call_function(
         &mut self,names: Vec<String>,
         body:MalType,
         is_rest:bool,
@@ -130,7 +191,7 @@ impl Interpreter{
             }
         }
 
-        self.eval(body)
+        Ok(body)
     }
 
     fn call_built_in_function(&mut self,func_type:BuiltInFunction,mut xs: Vec<MalType>)
@@ -175,16 +236,13 @@ impl Interpreter{
                 self.mal_def(xs)
             },
             BuiltInFunction::Let =>{
-                self.env.let_start();
-                let ret = self.mal_let(xs);
-                self.env.let_end();
-                ret
+                Err(format!("It's a bug! `let` must be evaluated in eval"))
             },
             BuiltInFunction::Fn =>{
                 self.mal_fn(xs)
             },
             BuiltInFunction::If =>{
-                self.mal_if(xs)
+                Err(format!("It's a bug! `if` must be evaluated in eval"))
             },
             BuiltInFunction::LoadFile =>{
                 if xs.len() != 1{
@@ -345,11 +403,70 @@ impl Interpreter{
                     };
                     self.mal_apply(f,y)
                 }
-            }
+            },
+            BuiltInFunction::Do => {
+                Err(format!("It's a bug! `do` must be evaluated in eval"))
+            },
         }
     }
 }
 
+impl  Interpreter {
+    
+    fn ready_eval_let(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
+        if xs.len() < 2{
+            Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
+        }else{
+            let vars_ast = xs.remove(0);
+            let rest_ast = xs;
+
+            let vars = match vars_ast.unwrap_sequence(){
+                Some(v)=>v,
+                None => return Err(format!(
+                    "The first argument of let* must be list or vector. We get {:?}.",vars_ast)),
+            };
+
+            let var_pair = match sequence_to_pair(vars){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
+
+            for (name,val) in var_pair{
+                if let Err(e) = self.mal_def(vec![name,val]){
+                    return Err(e)
+                }
+            }
+            
+            Ok(MalType::List(rest_ast))
+        }
+    }
+
+    fn ready_eval_if(&mut self,mut xs: Vec<MalType>)->Result<MalType,String>{
+        if xs.len() != 2 && xs.len() != 3{
+            return Err(format!(
+                "The function if needs 1 or 2 arguments, we got {}.",xs.len()));
+        }
+
+        let cond = match self.eval(xs.remove(0)){
+            Ok(v) => match v{
+                MalType::Nil => false,
+                MalType::Bool(b) => b,
+                _ => true,
+            },
+            Err(e) => return Err(e),
+        };
+
+        if cond{
+            Ok(xs.remove(0))
+        }else{
+            if xs.len() == 2{
+                Ok(xs.remove(1))
+            }else{
+                Ok(MalType::Nil)
+            }
+        }
+    }
+}
 
 impl Interpreter{
     fn mal_def(&mut self,xs : Vec<MalType>)->Result<MalType,String>{
@@ -370,35 +487,6 @@ impl Interpreter{
 
                 _ =>
                     Err(format!("Cannot assign value to {:?}",sym)),
-            }
-        }
-    }
-
-    fn mal_let(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
-        if xs.len() < 2{
-            Err(format!("The function let* needs at least 2 arguments, we got {}.",xs.len()))
-        }else{
-            let vars = match xs[0].unwrap_sequence(){
-                Some(v)=>v,
-                None => return Err(format!(
-                    "The first argument of let* must be list or vector. We get {:?}.",xs[0])),
-            };
-
-            let vars = match sequence_to_pair(vars){
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
-
-            for (name,val) in vars{
-                if let Err(e) = self.mal_def(vec![name,val]){
-                    return Err(e)
-                }
-            }
-            
-            xs.remove(0);
-            match self.eval_sequence(xs){
-                Ok(mut v) => Ok(v.pop().unwrap()),
-                Err(e) => Err(e),
             }
         }
     }
@@ -461,32 +549,6 @@ impl Interpreter{
         Ok(MalType::Function(names,Box::new(ast),is_rest,local_env))
     }
 
-    fn mal_if(&mut self,xs: Vec<MalType>)->Result<MalType,String>{
-        if xs.len() < 2 || xs.len() > 3{
-            return Err(format!(
-                "The function if needs 2 or 3 arguments, we got {}.",xs.len()));
-        }
-
-        let cond = match self.eval(xs[0].clone()){
-            Ok(v) => match v{
-                MalType::Nil => false,
-                MalType::Bool(b) => b,
-                _ => true,
-            },
-            Err(e) => return Err(e),
-        };
-
-        if cond{
-            self.eval(xs[1].clone())
-        }else{
-            if xs.len() == 3{
-                self.eval(xs[2].clone())
-            }else{
-                Ok(MalType::Nil)
-            }
-        }
-
-    }
 
     fn mal_apply(&mut self,f: MalType,mut y :MalType)->Result<MalType,String>{
         if f.unwrap_function().is_none() && f.unwrap_build_in_function().is_none() {
@@ -507,7 +569,7 @@ impl Interpreter{
         };
 
         xs.insert(0,f);
-        
+
         self.eval(MalType::List(xs))
     }
 }

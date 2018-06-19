@@ -57,9 +57,10 @@ pub enum BuiltInFunction{
     PrStr,
     Str,
     Apply,
+    Do,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);24] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);25] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -84,6 +85,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);24] = [
     ("pr-str",BuiltInFunction::PrStr),
     ("str",BuiltInFunction::Str),
     ("apply",BuiltInFunction::Apply),
+    ("do",BuiltInFunction::Do),
 ];
 
 impl MalType{
@@ -226,6 +228,16 @@ impl MalType{
             Some(v.clone())
         }else{
             None
+        }
+    }
+}
+
+impl MalType{
+    pub fn is_list(&self)->bool{
+        if let MalType::List(_)=self{
+            true
+        }else{
+            false
         }
     }
 }
