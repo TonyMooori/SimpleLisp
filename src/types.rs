@@ -59,9 +59,10 @@ pub enum BuiltInFunction{
     Apply,
     Do,
     Slurp,
+    ReadString,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);26] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);27] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -88,6 +89,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);26] = [
     ("apply",BuiltInFunction::Apply),
     ("do",BuiltInFunction::Do),
     ("slurp",BuiltInFunction::Slurp),
+    ("read-string",BuiltInFunction::ReadString),
 ];
 
 impl MalType{

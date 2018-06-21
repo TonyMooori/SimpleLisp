@@ -419,6 +419,17 @@ impl Interpreter{
                         Err(e) => Err(e),
                     }
                 }
+            },
+            BuiltInFunction::ReadString => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function err needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => self.mal_read_string(y),
+                        Err(e) => Err(e),
+                    }
+                }
             }
         }
     }
@@ -584,5 +595,27 @@ impl Interpreter{
         xs.insert(0,f);
 
         self.eval(MalType::List(xs))
+    }
+
+    fn mal_read_string(&mut self,x:MalType)->Result<MalType,String>{
+        match x {
+            MalType::Str(code) => {
+                match self.read(code){
+                    Ok(mut v) => {
+                        if v.len() == 0 {
+                            Ok(MalType::Nil)
+                        }else{
+                            Ok(v.remove(0))
+                        }
+                    },
+                    Err(e) => {
+                        Err(e)
+                    }
+                }
+            }
+            _ => Err(format!(
+                "The argument of read-string must be string, we got {}",
+                x.to_string(true)))
+        }
     }
 }
