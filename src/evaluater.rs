@@ -102,6 +102,8 @@ impl Interpreter{
             }
         }
 
+        // TODO: MalType::Functionのときにやってしまったほうが良いのでは
+        //       このままだと呼び出し側の変数にアクセスできてしまうのでは
         for _ in 0..n_let{
             self.env.let_end();
         }
@@ -407,6 +409,17 @@ impl Interpreter{
             BuiltInFunction::Do => {
                 Err(format!("It's a bug! `do` must be evaluated in eval"))
             },
+            BuiltInFunction::Slurp =>{
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function err needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => mal_slurp(y),
+                        Err(e) => Err(e),
+                    }
+                }
+            }
         }
     }
 }

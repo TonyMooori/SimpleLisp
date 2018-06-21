@@ -1,5 +1,8 @@
 use types::MalType;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
 
 fn to_integer_vec(xs: Vec<MalType>)->Result<Vec<i64>,String>{
     let mut v = Vec::new();
@@ -283,5 +286,28 @@ pub fn mal_err(x:MalType)->Result<MalType,String>{
             Err(s),
         _ =>
             Err(format!("The argument of err function must be string"))
+    }
+}
+
+
+pub fn mal_slurp(x:MalType) -> Result<MalType,String> {
+    match x{
+        MalType::Str(filename) => {
+            let file = match File::open(filename.clone()){
+                Ok(v) => v,
+                Err(_) => return Err(format!("Cannot open file {}.",filename)),
+            };
+            let mut buf_reader = BufReader::new(file);
+            let mut code = String::new();
+            match buf_reader.read_to_string(&mut code){
+                Ok(_) => 
+                    Ok(MalType::Str(code)),
+                Err(_) => 
+                    Err(format!("Cannot read file {}.",filename)),
+            }
+        },
+        _ => {
+            Err(format!("The argument of slurp function must be string"))
+        }
     }
 }
