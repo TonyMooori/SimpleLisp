@@ -28,6 +28,7 @@ pub enum MalType{
     BuiltInFunction(BuiltInFunction), 
     Keyword(String),
     Dict(HashMap<String,MalType>),
+    Atom(usize),
     Nil,
 }
 
@@ -60,9 +61,12 @@ pub enum BuiltInFunction{
     Do,
     Slurp,
     ReadString,
+    Atom,
+    AtomAt,
+    Deref,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);27] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);30] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -90,6 +94,9 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);27] = [
     ("do",BuiltInFunction::Do),
     ("slurp",BuiltInFunction::Slurp),
     ("read-string",BuiltInFunction::ReadString),
+    ("atom",BuiltInFunction::Atom),
+    ("atom-at",BuiltInFunction::AtomAt),
+    ("deref",BuiltInFunction::Deref),
 ];
 
 impl MalType{
@@ -167,6 +174,9 @@ impl MalType{
                 let joined = xs.join(",");
 
                 format!("{{{}}}",joined)
+            },
+            MalType::Atom(i) => {
+                format!("(atom-at {})",i)
             }
         }
     }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use types::{MalType,BUILD_IN_FUNCTION_NAMES};
+use std::env;
 
 pub struct Env{
     envs : Vec<HashMap<String,MalType>>,
@@ -48,6 +49,16 @@ impl Env{
                 MalType::BuiltInFunction(ftype.clone())
             );
         }
+
+        let mut argv = vec![];
+        for argument in env::args(){
+            argv.push(MalType::Str(argument.to_string()));
+        }
+        argv.remove(0); // file path of program
+        env.insert(
+            "*ARGV*".to_string(),
+            MalType::List(argv)
+        );
 
         env
     }

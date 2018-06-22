@@ -4,15 +4,18 @@ use std::io;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::collections::HashMap;
 
 pub struct Interpreter{
-    pub env : Env
+    pub env : Env,
+    pub atoms : HashMap<usize,MalType>
 }
 
 impl Interpreter{
     pub fn new()->Interpreter{
         Interpreter{
             env : Env::new(),
+            atoms : HashMap::new()
         }
     }
 }

@@ -237,6 +237,7 @@ pub fn mal_typestr(x:MalType)->Result<MalType,String>{
         MalType::BuiltInFunction(_) => "built-in-func",
         MalType::Keyword(_) => "keyword",
         MalType::Dict(_) => "dict",
+        MalType::Atom(_) => "atom",
         MalType::Nil => "nil",
     }.to_string()))
 }
@@ -309,5 +310,14 @@ pub fn mal_slurp(x:MalType) -> Result<MalType,String> {
         _ => {
             Err(format!("The argument of slurp function must be string"))
         }
+    }
+}
+
+pub fn mal_atom_at(x:MalType)-> Result<MalType,String> {
+    match x {
+        MalType::Integer(n) => Ok(MalType::Atom(n as usize)),
+        _ => Err(format!(
+            "The argument of atom-at must be integer, we got {}",
+            x.to_string(true))),
     }
 }

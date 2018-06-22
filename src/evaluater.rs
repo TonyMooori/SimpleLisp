@@ -412,7 +412,7 @@ impl Interpreter{
             BuiltInFunction::Slurp =>{
                 if xs.len() != 1{
                     Err(format!(
-                        "The function err needs exactly 1 arguments, we got {}.",xs.len()))
+                        "The function slurp needs exactly 1 arguments, we got {}.",xs.len()))
                 }else{
                     match self.eval(xs.pop().unwrap()){
                         Ok(y) => mal_slurp(y),
@@ -423,10 +423,43 @@ impl Interpreter{
             BuiltInFunction::ReadString => {
                 if xs.len() != 1{
                     Err(format!(
-                        "The function err needs exactly 1 arguments, we got {}.",xs.len()))
+                        "The function read-string needs exactly 1 arguments, we got {}.",xs.len()))
                 }else{
                     match self.eval(xs.pop().unwrap()){
                         Ok(y) => self.mal_read_string(y),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::Atom =>{
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function atom needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => self.mal_atom(y),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::AtomAt =>{
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function atom-at needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => mal_atom_at(y),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::Deref => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function deref needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(y) => self.mal_deref(y),
                         Err(e) => Err(e),
                     }
                 }
@@ -616,6 +649,38 @@ impl Interpreter{
             _ => Err(format!(
                 "The argument of read-string must be string, we got {}",
                 x.to_string(true)))
+        }
+    }
+
+    fn mal_atom(&mut self,x:MalType)->Result<MalType,String>{
+        let at = self.new_atom();
+        self.set_atom(at,x);
+        Ok(MalType::Atom(at))
+    }
+
+    fn mal_deref(&self,x:MalType) -> Result<MalType,String>{
+        match x{
+            MalType::Atom(n) => Ok(self.get_atom(n)),
+            _ => Err(format!(
+                "The argument of deref must be atom, we got {}",
+                x.to_string(true)))
+        }
+    }
+
+    fn new_atom(&mut self)->usize{
+        let at = self.atoms.len();
+        self.atoms.insert(at,MalType::Nil);
+        at
+    }
+
+    fn set_atom(&mut self,pos:usize,x:MalType){
+        self.atoms.insert(pos,x);
+    }
+
+    fn get_atom(&self,pos:usize)->MalType{
+        match self.atoms.get(&pos) {
+            Some(v) => v.clone(),
+            None => MalType::Nil,
         }
     }
 }
