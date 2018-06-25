@@ -68,3 +68,9 @@
     (print-string (apply str r) "\r\n")))
 (def! atom? (fn* [x]
     (= "atom" (type-str x))))
+(def! swap! (fn* [a f & xs]
+    (let*[
+        ys (cons @a xs)
+        y  (apply f ys)
+    ]
+    (reset! a y))))
