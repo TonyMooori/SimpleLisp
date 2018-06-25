@@ -46,6 +46,9 @@ impl Interpreter{
                 '\'' => {
                     self.read_quote(lexer)
                 },
+                '@' => {
+                    self.read_deref(lexer)
+                },
                 _ => {
                     Err(format!("Unexpected symbol: {} ",s))
                 }
@@ -103,6 +106,26 @@ impl Interpreter{
             let v = {
                 let mut v = vec![];
                 v.push(MalType::BuiltInFunction(BuiltInFunction::Quote));
+                v.push(next);
+
+                v
+            };
+
+            Ok(MalType::List(v))
+        }
+    }
+
+    fn read_deref(&self,lexer:&mut Lexer)->Result<MalType,String>{
+        lexer.next().unwrap();
+
+        let next = self.read_form(lexer);
+        if next.is_err(){
+            next
+        }else{
+            let next = next.unwrap();
+            let v = {
+                let mut v = vec![];
+                v.push(MalType::BuiltInFunction(BuiltInFunction::Deref));
                 v.push(next);
 
                 v
