@@ -463,6 +463,22 @@ impl Interpreter{
                         Err(e) => Err(e),
                     }
                 }
+            },
+            BuiltInFunction::Reset => {
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function reset! needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    let val = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    };
+                    let atom = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v,
+                        Err(e) => return Err(e)
+                    };
+                    self.mal_reset(atom,val)
+                }
             }
         }
     }
@@ -664,6 +680,18 @@ impl Interpreter{
             _ => Err(format!(
                 "The argument of deref must be atom, we got {}",
                 x.to_string(true)))
+        }
+    }
+
+    fn mal_reset(&mut self,atom:MalType,val:MalType)->Result<MalType,String>{
+        if let MalType::Atom(n) = atom{
+            self.set_atom(n,val.clone());
+
+            Ok(val)
+        }else{
+            Err(format!(
+                "The first argument of reset! must be atom, we got {}",
+                atom.to_string(true)))
         }
     }
 

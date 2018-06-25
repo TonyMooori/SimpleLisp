@@ -64,9 +64,10 @@ pub enum BuiltInFunction{
     Atom,
     AtomAt,
     Deref,
+    Reset,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);30] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);31] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -97,6 +98,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);30] = [
     ("atom",BuiltInFunction::Atom),
     ("atom-at",BuiltInFunction::AtomAt),
     ("deref",BuiltInFunction::Deref),
+    ("reset!",BuiltInFunction::Reset),
 ];
 
 impl MalType{
@@ -177,7 +179,7 @@ impl MalType{
             },
             MalType::Atom(i) => {
                 format!("(atom-at {})",i)
-            }
+            },
         }
     }
 }
