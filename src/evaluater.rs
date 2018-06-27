@@ -111,7 +111,7 @@ impl Interpreter{
         result
     }
 
-    fn eval_identifier(&mut self,ident:String)-> Result<MalType,String>{
+    fn eval_identifier(&self,ident:String)-> Result<MalType,String>{
         match self.env.get(&ident){
             Some(v) => Ok(v.clone()),
             None => Err(format!("Unknown symbol: {}",ident)),
@@ -467,7 +467,7 @@ impl Interpreter{
             BuiltInFunction::Reset => {
                 if xs.len() != 2{
                     Err(format!(
-                        "The function reset! needs exactly 1 arguments, we got {}.",xs.len()))
+                        "The function reset! needs exactly 2 arguments, we got {}.",xs.len()))
                 }else{
                     let val = match self.eval(xs.pop().unwrap()){
                         Ok(v) => v,
@@ -478,6 +478,30 @@ impl Interpreter{
                         Err(e) => return Err(e)
                     };
                     self.mal_reset(atom,val)
+                }
+            },
+            BuiltInFunction::QuasiQuote => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function quasiquote needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    self.mal_quasiquote(xs.pop().unwrap())
+                }
+            },
+            BuiltInFunction::SpliceUnQuote => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function splice-unquote needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    self.eval(xs.pop().unwrap())
+                }
+            },
+            BuiltInFunction::UnQuote => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function unquote needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    self.eval(xs.pop().unwrap())
                 }
             }
         }
@@ -710,5 +734,86 @@ impl Interpreter{
             Some(v) => v.clone(),
             None => MalType::Nil,
         }
+    }
+    
+    fn get_first_build_in_function(&self,xs:Vec<MalType>) -> Result<BuiltInFunction,()>{
+        if xs.len() == 0{
+            return Err(());
+        }
+
+        let mut x = xs[0].clone();
+
+        if let MalType::Identifier(s) = x{
+            x = match self.eval_identifier(s){
+                Ok(v) => v,
+                Err(_) => return Err(()),
+            };
+        }
+        if let MalType::BuiltInFunction(f) = x{
+            Ok(f)
+        }else{
+            Err(())
+        }
+    }
+
+    fn mal_quasiquote(&mut self,x: MalType) -> Result<MalType,String>{
+        if ! x.is_sequence(){
+            return Ok(x);
+        }
+        let xs = x
+            .unwrap_sequence()
+            .unwrap();
+        let res_f = self.get_first_build_in_function(xs.clone());
+
+        if res_f == Ok(BuiltInFunction::UnQuote)
+            || res_f == Ok(BuiltInFunction::SpliceUnQuote) {
+            return self.eval(MalType::List(xs));
+        }
+
+        let ys = {
+            let mut ys = vec![];
+
+            for x in xs.into_iter(){
+                if ! x.is_list(){
+                    ys.push(x);
+                    continue;
+                }
+                let v = x.unwrap_sequence().unwrap();
+                let f = match self.get_first_build_in_function(v.clone()){
+                    Ok(f) => f,
+                    Err(_) => {
+                        ys.push(MalType::List(v));
+                        continue;
+                    }
+                };
+
+                if f == BuiltInFunction::UnQuote {
+                    // f is unquote -> eval it and push it
+                    match self.eval(MalType::List(v)){
+                        Ok(r) => ys.push(r),
+                        Err(e) => return Err(e),
+                    }
+                }else if f == BuiltInFunction::SpliceUnQuote{
+                    // f is splice-unquote -> eval it and append it
+                    match self.eval(MalType::List(v)){
+                        Ok(r) => {
+                            if r.is_sequence(){
+                                ys.append(&mut r.unwrap_sequence().unwrap())
+                            }else{
+                                ys.push(r);
+                            }
+                        },
+                        Err(e) => return Err(e),
+                    }
+                }else{
+                    ys.push(MalType::List(v));
+                }
+            }
+
+            ys
+        };  
+
+
+        Ok(MalType::List(ys))
     }
 }

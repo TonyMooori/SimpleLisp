@@ -65,9 +65,12 @@ pub enum BuiltInFunction{
     AtomAt,
     Deref,
     Reset,
+    UnQuote,
+    SpliceUnQuote,
+    QuasiQuote,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);31] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);34] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -99,6 +102,9 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);31] = [
     ("atom-at",BuiltInFunction::AtomAt),
     ("deref",BuiltInFunction::Deref),
     ("reset!",BuiltInFunction::Reset),
+    ("unquote",BuiltInFunction::UnQuote),
+    ("splice-unquote",BuiltInFunction::SpliceUnQuote),
+    ("quasiquote",BuiltInFunction::QuasiQuote),
 ];
 
 impl MalType{
@@ -154,7 +160,7 @@ impl MalType{
                     ast.to_string(print_readably))
             },
             MalType::BuiltInFunction(t) => {
-                for (fname,ftype) in &BUILD_IN_FUNCTION_NAMES{
+                for (fname,ftype) in BUILD_IN_FUNCTION_NAMES.iter(){
                     if ftype == t{
                         return fname.to_string();
                     }
@@ -255,6 +261,18 @@ impl MalType{
         }else{
             false
         }
+    }
+    
+    pub fn is_vector(&self)->bool{
+        if let MalType::Vector(_)=self{
+            true
+        }else{
+            false
+        }
+    }
+
+    pub fn is_sequence(&self)->bool{
+        self.is_list() || self.is_vector()
     }
 }
 

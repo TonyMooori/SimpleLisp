@@ -43,7 +43,7 @@ impl Env{
     fn defualt_env()->HashMap<String,MalType>{
         let mut env = HashMap::new();
 
-        for (f,ftype) in &BUILD_IN_FUNCTION_NAMES{
+        for (f,ftype) in BUILD_IN_FUNCTION_NAMES.iter(){
             env.insert(
                 f.to_string(),
                 MalType::BuiltInFunction(ftype.clone())
