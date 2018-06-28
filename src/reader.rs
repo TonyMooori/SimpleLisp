@@ -44,10 +44,20 @@ impl Interpreter{
                     self.read_dict(lexer)
                 },
                 '\'' => {
-                    self.read_quote(lexer)
+                    self.read_reader_macro(lexer,BuiltInFunction::Quote)
                 },
                 '@' => {
-                    self.read_deref(lexer)
+                    self.read_reader_macro(lexer,BuiltInFunction::Deref)
+                },
+                '`' => {
+                    self.read_reader_macro(lexer,BuiltInFunction::QuasiQuote)
+                },
+                '~' => {
+                    if s.len() == 1{
+                        self.read_reader_macro(lexer,BuiltInFunction::UnQuote)
+                    }else{
+                        self.read_reader_macro(lexer,BuiltInFunction::SpliceUnQuote)
+                    }
                 },
                 _ => {
                     Err(format!("Unexpected symbol: {} ",s))
@@ -95,7 +105,7 @@ impl Interpreter{
         }
     }
 
-    fn read_quote(&self,lexer:&mut Lexer)->Result<MalType,String>{
+    fn read_reader_macro(&self,lexer:&mut Lexer, func :BuiltInFunction) -> Result<MalType,String>{
         lexer.next().unwrap();
 
         let next = self.read_form(lexer);
@@ -105,27 +115,7 @@ impl Interpreter{
             let next = next.unwrap();
             let v = {
                 let mut v = vec![];
-                v.push(MalType::BuiltInFunction(BuiltInFunction::Quote));
-                v.push(next);
-
-                v
-            };
-
-            Ok(MalType::List(v))
-        }
-    }
-
-    fn read_deref(&self,lexer:&mut Lexer)->Result<MalType,String>{
-        lexer.next().unwrap();
-
-        let next = self.read_form(lexer);
-        if next.is_err(){
-            next
-        }else{
-            let next = next.unwrap();
-            let v = {
-                let mut v = vec![];
-                v.push(MalType::BuiltInFunction(BuiltInFunction::Deref));
+                v.push(MalType::BuiltInFunction(func));
                 v.push(next);
 
                 v
