@@ -88,13 +88,28 @@ impl Interpreter{
             }else if let MalType::Function(_,_,_,_,_) = f{
                 let (argnames,body,is_rest,local_env,is_macro) = 
                     f.unwrap_function().unwrap();
-                self.env.let_start();
-                n_let += 1;
-                ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env){
-                    Ok(body) => body,
-                    Err(e) => {
-                        result = Err(e);
-                        break;
+                // eprintln!("{:?}",body.to_string(true));
+                if is_macro {
+                    let mut ys = vec![];
+                    ys.push(MalType::BuiltInFunction(BuiltInFunction::Eval));
+                    xs.insert(0,MalType::Function(argnames,Box::new(body),is_rest,local_env,false));
+                    ys.push(MalType::List(xs));
+
+                    ast = MalType::List(
+                        vec![
+                            MalType::BuiltInFunction(BuiltInFunction::Eval),
+                            MalType::List(ys)
+                        ]
+                    );
+                }else{       
+                    self.env.let_start();
+                    n_let += 1;
+                    ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env){
+                        Ok(body) => body,
+                        Err(e) => {
+                            result = Err(e);
+                            break;
+                        }
                     }
                 }
             }else{
@@ -804,63 +819,52 @@ impl Interpreter{
     }
 
     fn mal_quasiquote(&mut self,x: MalType) -> Result<MalType,String>{
-        if ! x.is_sequence(){
-            return Ok(x);
+        match self.inner_quasiquote(x){
+            Ok(v) => Ok(v.0),
+            Err(e) => Err(e),
         }
+    }
+
+    fn inner_quasiquote(&mut self,x: MalType) -> Result<(MalType,bool),String>{
+        if ! x.is_sequence(){
+            return Ok((x,false));
+        }
+
+        let is_list = x.is_list();
         let xs = x
             .unwrap_sequence()
             .unwrap();
-        let res_f = self.get_first_build_in_function(xs.clone());
+        let mut ys = vec![];
 
-        if res_f == Ok(BuiltInFunction::UnQuote)
-            || res_f == Ok(BuiltInFunction::SpliceUnQuote) {
-            return self.eval(MalType::List(xs));
+        if is_list{
+            let res_f = self.get_first_build_in_function(xs.clone());
+            
+            if res_f == Ok(BuiltInFunction::UnQuote){
+                return match self.eval(MalType::List(xs)){
+                    Ok(v) => Ok((v,false)),
+                    Err(e) => Err(e),
+                };
+            }else if res_f == Ok(BuiltInFunction::SpliceUnQuote) {
+                return match self.eval(MalType::List(xs)){
+                    Ok(v) => Ok((v,true)),
+                    Err(e) => Err(e)
+                };
+            }
         }
 
-        let ys = {
-            let mut ys = vec![];
+        for x in xs.into_iter(){
+            let (x,f) = match self.inner_quasiquote(x){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
-            for x in xs.into_iter(){
-                if ! x.is_list(){
-                    ys.push(x);
-                    continue;
-                }
-                let v = x.unwrap_sequence().unwrap();
-                let f = match self.get_first_build_in_function(v.clone()){
-                    Ok(f) => f,
-                    Err(_) => {
-                        ys.push(MalType::List(v));
-                        continue;
-                    }
-                };
-
-                if f == BuiltInFunction::UnQuote {
-                    // f is unquote -> eval it and push it
-                    match self.eval(MalType::List(v)){
-                        Ok(r) => ys.push(r),
-                        Err(e) => return Err(e),
-                    }
-                }else if f == BuiltInFunction::SpliceUnQuote{
-                    // f is splice-unquote -> eval it and append it
-                    match self.eval(MalType::List(v)){
-                        Ok(r) => {
-                            if r.is_sequence(){
-                                ys.append(&mut r.unwrap_sequence().unwrap())
-                            }else{
-                                ys.push(r);
-                            }
-                        },
-                        Err(e) => return Err(e),
-                    }
-                }else{
-                    ys.push(MalType::List(v));
-                }
+            if f && x.is_sequence(){
+                ys.append(&mut x.unwrap_sequence().unwrap());
+            }else{
+                ys.push(x);
             }
+        }
 
-            ys
-        };  
-
-
-        Ok(MalType::List(ys))
+        Ok((MalType::List(ys),false))
     }
 }
