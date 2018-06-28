@@ -321,3 +321,19 @@ pub fn mal_atom_at(x:MalType)-> Result<MalType,String> {
             x.to_string(true))),
     }
 }
+
+pub fn mal_concat(xs:Vec<MalType>) -> Result<MalType,String>{
+    let mut ys = vec![];
+
+    for x in xs{
+        if let Some(mut v) = x.unwrap_sequence(){
+            ys.append(&mut v);
+        }else{
+            return Err(format!(
+                "The argument of concat must be sequence, we got {}",
+                x.to_string(true)));
+        }
+    }
+
+    Ok(MalType::List(ys))
+}

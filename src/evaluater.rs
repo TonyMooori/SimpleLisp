@@ -503,6 +503,13 @@ impl Interpreter{
                 }else{
                     self.eval(xs.pop().unwrap())
                 }
+            },
+            BuiltInFunction::ConCat => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => 
+                        mal_concat(ys),
+                    Err(e) => Err(e),
+                }
             }
         }
     }

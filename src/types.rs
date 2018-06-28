@@ -68,9 +68,10 @@ pub enum BuiltInFunction{
     UnQuote,
     SpliceUnQuote,
     QuasiQuote,
+    ConCat,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);34] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);35] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -105,6 +106,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);34] = [
     ("unquote",BuiltInFunction::UnQuote),
     ("splice-unquote",BuiltInFunction::SpliceUnQuote),
     ("quasiquote",BuiltInFunction::QuasiQuote),
+    ("concat",BuiltInFunction::ConCat),
 ];
 
 impl MalType{
