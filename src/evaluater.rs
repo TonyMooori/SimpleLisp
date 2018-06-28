@@ -85,8 +85,9 @@ impl Interpreter{
                     result = self.call_built_in_function(func_type,xs);
                     break;
                 }
-            }else if let MalType::Function(_,_,_,_) = f{
-                let (argnames,body,is_rest,local_env) = f.unwrap_function().unwrap();
+            }else if let MalType::Function(_,_,_,_,_) = f{
+                let (argnames,body,is_rest,local_env,is_macro) = 
+                    f.unwrap_function().unwrap();
                 self.env.let_start();
                 n_let += 1;
                 ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env){
@@ -510,6 +511,9 @@ impl Interpreter{
                         mal_concat(ys),
                     Err(e) => Err(e),
                 }
+            },
+            BuiltInFunction::DefMacro => {
+                self.mal_defmacro(xs)
             }
         }
     }
@@ -585,12 +589,48 @@ impl Interpreter{
             
             match sym{
                 MalType::Identifier(ident) => {
-                    self.env.set(ident.clone(),val);
-                    Ok(MalType::Identifier(ident))
+                    self.env.set(ident.clone(),val.clone());
+                    Ok(val)
                 },
 
                 _ =>
                     Err(format!("Cannot assign value to {:?}",sym)),
+            }
+        }
+    }
+
+    fn mal_defmacro(&mut self,mut xs : Vec<MalType>)->Result<MalType,String>{
+        if xs.len() != 2{
+            Err(format!("The function def! needs exactly 2 arguments, we got {}.",xs.len()))
+        }else{
+            let sym = match xs.remove(0) {
+                MalType::Identifier(ident) => ident,
+                _ => return Err(format!(
+                        "The first argument of defmacro! must be symbol.")),
+            };
+            let val = match self.eval(xs.remove(0)){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
+            
+            match val {
+                MalType::Function(varnames,body,is_rest,local_env,_) => {
+                    let val = MalType::Function(
+                        varnames,
+                        body,
+                        is_rest,
+                        local_env,
+                        true
+                    );
+                    self.env.set(sym,val.clone());
+                    Ok(val)
+                },
+                _ => {
+                    Err(format!(
+                        "The argument of defmacro! must be function, we got {:?}.",
+                        val
+                    ))
+                }
             }
         }
     }
@@ -650,7 +690,7 @@ impl Interpreter{
             }
         }
 
-        Ok(MalType::Function(names,Box::new(ast),is_rest,local_env))
+        Ok(MalType::Function(names,Box::new(ast),is_rest,local_env,false))
     }
 
 

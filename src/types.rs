@@ -23,8 +23,8 @@ pub enum MalType{
     Bool(bool),
     Vector(Vec<MalType>),
     List(Vec<MalType>),
-    // varnames, body, & rest, local_env
-    Function(Vec<String>,Box<MalType>,bool,HashMap<String,MalType>), 
+    // varnames, body, & rest, local_env, is_macro
+    Function(Vec<String>,Box<MalType>,bool,HashMap<String,MalType>,bool), 
     BuiltInFunction(BuiltInFunction), 
     Keyword(String),
     Dict(HashMap<String,MalType>),
@@ -69,9 +69,10 @@ pub enum BuiltInFunction{
     SpliceUnQuote,
     QuasiQuote,
     ConCat,
+    DefMacro,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);35] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);36] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -107,6 +108,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);35] = [
     ("splice-unquote",BuiltInFunction::SpliceUnQuote),
     ("quasiquote",BuiltInFunction::QuasiQuote),
     ("concat",BuiltInFunction::ConCat),
+    ("defmacro!",BuiltInFunction::DefMacro),
 ];
 
 impl MalType{
@@ -150,7 +152,7 @@ impl MalType{
 
                 format!("({})",joined)
             },
-            MalType::Function(args,ast,flag,_)=>{
+            MalType::Function(args,ast,flag,_,_)=>{
                 let mut args = args.clone();
                 if *flag{
                     let idx = args.len()-1;
@@ -193,13 +195,13 @@ impl MalType{
 }
 
 impl MalType{
-    pub fn unwrap_function(&self)->Option<(Vec<String>,MalType,bool,HashMap<String,MalType>)>{
-        if let MalType::Function(a,b,c,d) = self{
+    pub fn unwrap_function(&self)->Option<(Vec<String>,MalType,bool,HashMap<String,MalType>,bool)>{
+        if let MalType::Function(a,b,c,d,e) = self{
             // let b = b;
             // let b = (*b).clone();
             // let b = *b;
             // Some((a.clone(),b,c.clone()))
-            Some((a.clone(),*((*b).clone()),c.clone(),d.clone()))
+            Some((a.clone(),*((*b).clone()),c.clone(),d.clone(),e.clone()))
         }else{
             None
         }
