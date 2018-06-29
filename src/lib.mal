@@ -74,3 +74,24 @@
         y  (apply f ys)
     ]
     (reset! a y))))
+
+(defmacro! or (fn* (& xs) 
+    (if (empty? xs) 
+        nil 
+        (if (= 1 (count xs)) 
+            (first xs) 
+            `(let* 
+                (or_FIXME ~(first xs)) 
+                (if or_FIXME or_FIXME (or ~@(rest xs))))))))
+
+(defmacro! cond
+  (fn* (& clauses)
+    (if (> (count clauses) 0)
+      (list 'if (first clauses)
+            (if (> (count clauses) 1)
+                (nth clauses 1)
+                (throw "cond requires an even number of forms"))
+            (cons 'cond (rest (rest clauses)))))))
+
+
+nil

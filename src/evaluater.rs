@@ -8,9 +8,14 @@ impl Interpreter{
     pub fn eval(&mut self,mut ast:MalType)-> Result<MalType,String>{
         // eprintln!("evaluating {:?} in eval",ast);
         let mut result : Result<MalType,String> = Ok(MalType::Nil);
-        let mut n_let = 0;
+        let env_level = self.env.get_level();
         
         loop{
+            ast = match self.mal_macroexpand(ast){
+                Err(e) => return Err(e),
+                Ok(v) => v,
+            };
+
             if let MalType::Identifier(ident) = ast{
                 result = self.eval_identifier(ident);
                 break;
@@ -50,7 +55,6 @@ impl Interpreter{
                     }
                 }else if func_type == BuiltInFunction::Let{
                     self.env.let_start();
-                    n_let += 1;
                     let mut let_body = match self.ready_eval_let(xs){
                         Ok(v) => v.unwrap_sequence().unwrap(),
                         Err(e) => {
@@ -86,32 +90,17 @@ impl Interpreter{
                     break;
                 }
             }else if let MalType::Function(_,_,_,_,_) = f{
-                let (argnames,body,is_rest,local_env,is_macro) = 
+                let (argnames,body,is_rest,local_env,_) = 
                     f.unwrap_function().unwrap();
                 // eprintln!("{:?}",body.to_string(true));
-                if is_macro {
-                    let mut ys = vec![];
-                    ys.push(MalType::BuiltInFunction(BuiltInFunction::Eval));
-                    xs.insert(0,MalType::Function(argnames,Box::new(body),is_rest,local_env,false));
-                    ys.push(MalType::List(xs));
-
-                    ast = MalType::List(
-                        vec![
-                            MalType::BuiltInFunction(BuiltInFunction::Eval),
-                            MalType::List(ys)
-                        ]
-                    );
-                }else{       
-                    self.env.let_start();
-                    n_let += 1;
-                    ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env){
-                        Ok(body) => body,
-                        Err(e) => {
-                            result = Err(e);
-                            break;
-                        }
+                self.env.let_start();
+                ast = match self.ready_call_function(argnames,body,is_rest,xs,local_env,true){
+                    Ok(body) => body,
+                    Err(e) => {
+                        result = Err(e);
+                        break;
                     }
-                }
+                };
             }else{
                 result = Err(format!("{:?} is not callable.",f));
                 break;
@@ -120,7 +109,8 @@ impl Interpreter{
 
         // TODO: MalType::Functionのときにやってしまったほうが良いのでは
         //       このままだと呼び出し側の変数にアクセスできてしまうのでは
-        for _ in 0..n_let{
+        //       根本的に何かがおかしい気はする
+        while self.env.get_level() != env_level{
             self.env.let_end();
         }
 
@@ -163,7 +153,8 @@ impl Interpreter{
         body:MalType,
         is_rest:bool,
         args:Vec<MalType>,
-        local_env:HashMap<String,MalType>)
+        local_env:HashMap<String,MalType>,
+        is_eval_arg:bool)
         -> Result<MalType,String>{
         
         for (key,val) in local_env{
@@ -171,9 +162,13 @@ impl Interpreter{
         }
 
         // evaluate arguments
-        let args = match self.eval_sequence(args){
-            Err(e) => return Err(e),
-            Ok(v) => v,
+        let args = if is_eval_arg {
+            match self.eval_sequence(args){
+                Err(e) => return Err(e),
+                Ok(v) => v,
+            }
+        }else{
+            args
         };
 
         if is_rest{
@@ -648,6 +643,61 @@ impl Interpreter{
                 }
             }
         }
+    }
+
+    fn is_macro_call(&mut self,x:&MalType)->bool{
+        if let MalType::List(xs) = x{
+            if xs.len() == 0{
+                false
+            }else{
+                let mut f = xs[0].clone();
+                if let MalType::Identifier(s) = f{
+                    f = match self.eval_identifier(s) {
+                        Ok(v) => v,
+                        Err(_) => return false,
+                    };
+                }
+
+                if let MalType::Function(_,_,_,_,is_macro) = f{
+                    is_macro
+                }else{
+                    false
+                }
+            }
+        }else{
+            false
+        }
+    }
+    fn mal_macroexpand(&mut self,mut x : MalType)->Result<MalType,String>{
+        // eprintln!("x = {}",x.to_string(true));
+        while self.is_macro_call(&x){
+            // eprintln!("we got x = {}",x.to_string(true));
+            let mut xs = x.unwrap_sequence().unwrap();
+            let mut f = xs.remove(0);
+            if let MalType::Identifier(s) = f{
+                f = match self.eval_identifier(s) {
+                    Ok(v) => v,
+                    Err(e) => return Err(e),
+                };
+            }
+
+            let (varnames,body,is_rest,local_env,_) = 
+                f.unwrap_function().unwrap();
+            self.env.let_start();
+            x = match self.ready_call_function(varnames,body,is_rest,xs,local_env,false){
+                Ok(body) => body,
+                Err(e) => return Err(e)
+            };
+
+            // eprintln!("we changed x = {}",x.to_string(true));
+            x = match self.eval(x){
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
+            // eprintln!("we evaluated x and x = {}",x.to_string(true));
+        }
+
+        Ok(x)
     }
 
     fn mal_fn(&mut self,xs: Vec<MalType>)->Result<MalType,String>{

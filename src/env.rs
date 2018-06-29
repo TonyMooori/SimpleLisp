@@ -40,6 +40,10 @@ impl Env{
         }
     }
 
+    pub fn get_level(&self)->usize{
+        self.envs.len()
+    }
+
     fn defualt_env()->HashMap<String,MalType>{
         let mut env = HashMap::new();
 
