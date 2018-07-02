@@ -70,9 +70,12 @@ pub enum BuiltInFunction{
     QuasiQuote,
     ConCat,
     DefMacro,
+    Throw,
+    Try,
+    Catch,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);36] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);39] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -109,6 +112,9 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);36] = [
     ("quasiquote",BuiltInFunction::QuasiQuote),
     ("concat",BuiltInFunction::ConCat),
     ("defmacro!",BuiltInFunction::DefMacro),
+    ("throw",BuiltInFunction::Throw),
+    ("try*",BuiltInFunction::Try),
+    ("catch*",BuiltInFunction::Catch),
 ];
 
 impl MalType{

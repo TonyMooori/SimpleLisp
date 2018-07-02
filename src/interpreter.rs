@@ -8,14 +8,16 @@ use std::collections::HashMap;
 
 pub struct Interpreter{
     pub env : Env,
-    pub atoms : HashMap<usize,MalType>
+    pub atoms : HashMap<usize,MalType>,
+    pub error : MalType,
 }
 
 impl Interpreter{
     pub fn new()->Interpreter{
         Interpreter{
             env : Env::new(),
-            atoms : HashMap::new()
+            atoms : HashMap::new(),
+            error : MalType::Nil,
         }
     }
 }

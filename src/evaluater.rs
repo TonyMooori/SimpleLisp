@@ -524,7 +524,30 @@ impl Interpreter{
             },
             BuiltInFunction::DefMacro => {
                 self.mal_defmacro(xs)
-            }
+            },
+            BuiltInFunction::Throw => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function throw needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    self.error = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v,
+                        Err(e) => return Err(e),
+                    };
+                    Err(format!("Throwed an error."))
+                }
+            },
+            BuiltInFunction::Try => {
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function throw needs exactly 2 arguments, we got {}.",xs.len()))
+                }else{
+                    self.mal_try(xs)
+                }
+            },
+            BuiltInFunction::Catch => {
+                Err(format!("The function catch* must be called in try*."))
+            },
         }
     }
 }
@@ -916,5 +939,58 @@ impl Interpreter{
         }
 
         Ok((MalType::List(ys),false))
+    }
+
+    fn mal_try(&mut self,mut xs:Vec<MalType>)->Result<MalType,String>{
+        let err_str = match self.eval(xs.remove(0)){
+            Ok(v) => return Ok(v),
+            Err(e) => e,
+        };
+
+        let err_val = if err_str == "Throwed an error."{
+            self.error.clone()
+        }else{
+            MalType::Str(err_str)
+        };
+
+        let xs = xs.remove(0);
+        if ! xs.is_list() {
+            return Err(format!(
+                "The second argument of try* must be catch* function call."))
+        }
+
+        let mut xs = xs.unwrap_sequence().unwrap();
+        if xs.len() != 3{
+            return Err(format!(
+                "The second argument of try* is (catch* err-var result). We got {}.",
+                MalType::List(xs).to_string(false)));
+        }
+
+        let f = match self.eval(xs.remove(0)){
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
+        let varname = xs.remove(0);
+        let result = xs.remove(0);
+
+        if f != MalType::BuiltInFunction(BuiltInFunction::Catch){
+            return Err(format!(
+                "The second argument of try* is (catch* err-var result). "));
+        }
+
+        if varname.unwrap_identifier().is_none() {
+            return Err(format!(
+                "The first argument of catch* must be identifier, we got {}.",
+                varname.to_string(false)));
+        }
+        
+        self.env.let_start();
+        self.env.set(varname.unwrap_identifier().unwrap(), err_val);
+
+        let result = self.eval(result);
+
+        self.env.let_end();
+
+        result
     }
 }
