@@ -73,9 +73,12 @@ pub enum BuiltInFunction{
     Throw,
     Try,
     Catch,
+    Symbol,
+    Keyword,
+    Vector,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);39] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);42] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -115,6 +118,9 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);39] = [
     ("throw",BuiltInFunction::Throw),
     ("try*",BuiltInFunction::Try),
     ("catch*",BuiltInFunction::Catch),
+    ("symbol",BuiltInFunction::Symbol),
+    ("keyword",BuiltInFunction::Keyword),
+    ("vector",BuiltInFunction::Vector),
 ];
 
 impl MalType{

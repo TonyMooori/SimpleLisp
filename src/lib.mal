@@ -102,4 +102,11 @@
 (def! false? (fn* [x]
         (if (= x false) true false)))
 
+(def! keyword? (fn* [x] 
+    (= "keyword" (type-str x))))
+
+(def! sequential? (fn* [x]
+    (if (list? x) 
+        true
+        (vector? x))))
 nil

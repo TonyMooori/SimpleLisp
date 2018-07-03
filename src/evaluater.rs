@@ -366,10 +366,10 @@ impl Interpreter{
                 }
             },
             BuiltInFunction::PrintString => {
-                eprintln!("argument = {}",MalType::List(xs.clone()).to_string(false));
+                // eprintln!("argument = {}",MalType::List(xs.clone()).to_string(false));
                 match self.eval_sequence(xs){
                     Ok(ys) => {
-                        eprintln!("result = {}",MalType::List(ys.clone()).to_string(false));
+                        // eprintln!("result = {}",MalType::List(ys.clone()).to_string(false));
                         for y in ys{
                             match  y {
                                 MalType::Str(s) =>
@@ -545,6 +545,46 @@ impl Interpreter{
             },
             BuiltInFunction::Catch => {
                 Err(format!("The function catch* must be called in try*."))
+            },
+            BuiltInFunction::Symbol => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function symbol needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(v) => if let MalType::Str(s) = v {
+                            Ok(MalType::Identifier(s))
+                        }else{
+                            Err(format!(
+                                "The argument of symbol must be string, we got {}",
+                                v.to_string(false)))
+                        },
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::Keyword => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function keyword needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    match self.eval(xs.pop().unwrap()){
+                        Ok(v) => if let MalType::Str(s) = v {
+                            Ok(MalType::Keyword(format!(":{}", s)))
+                        }else{
+                            Err(format!(
+                                "The argument of symbol must be string, we got {}",
+                                v.to_string(false)))
+                        },
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            BuiltInFunction::Vector => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => Ok(MalType::Vector(ys)),
+                    Err(e) => Err(e),
+                }
             },
         }
     }
@@ -810,7 +850,7 @@ impl Interpreter{
         //         y]))
         //     .collect();
 
-        eprintln!("apply result = {}",MalType::List(ys.clone()).to_string(false));
+        // eprintln!("apply result = {}",MalType::List(ys.clone()).to_string(false));
 
         match f{
             MalType::Function(_,_,_,_,_) =>{
@@ -833,8 +873,6 @@ impl Interpreter{
 
             _ => Err(format!("It's bug at apply."))
         }
-
-
     }
 
     fn mal_read_string(&mut self,x:MalType)->Result<MalType,String>{
