@@ -366,8 +366,10 @@ impl Interpreter{
                 }
             },
             BuiltInFunction::PrintString => {
+                eprintln!("argument = {}",MalType::List(xs.clone()).to_string(false));
                 match self.eval_sequence(xs){
                     Ok(ys) => {
+                        eprintln!("result = {}",MalType::List(ys.clone()).to_string(false));
                         for y in ys{
                             match  y {
                                 MalType::Str(s) =>
@@ -402,19 +404,15 @@ impl Interpreter{
                 }
             },
             BuiltInFunction::Apply => {
-                if xs.len() != 2{
+                if xs.len() < 2{
                     Err(format!(
-                        "The function apply needs exactly 2 arguments, we got {}.",xs.len()))
+                        "The function apply needs at least 2 arguments, we got {}.",xs.len()))
                 }else{
-                    let y = match self.eval(xs.pop().unwrap()){
+                    let f = match self.eval(xs.remove(0)){
                         Ok(v) => v,
                         Err(e) => return Err(e)
                     };
-                    let f = match self.eval(xs.pop().unwrap()){
-                        Ok(v) => v,
-                        Err(e) => return Err(e)
-                    };
-                    self.mal_apply(f,y)
+                    self.mal_apply(f,xs)
                 }
             },
             BuiltInFunction::Do => {
@@ -782,27 +780,61 @@ impl Interpreter{
     }
 
 
-    fn mal_apply(&mut self,f: MalType,mut y :MalType)->Result<MalType,String>{
+    fn mal_apply(&mut self,f: MalType,mut xs :Vec<MalType>)->Result<MalType,String>{
         if f.unwrap_function().is_none() && f.unwrap_build_in_function().is_none() {
             return Err(format!("The first argument of apply must be function."))
         }
-
-        if let MalType::Identifier(s) = y{
-            y = match self.eval_identifier(s){
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
-        }
-
-        let mut xs = if let Some(v) = y.unwrap_sequence(){
-            v
-        }else{
-            return Err(format!("The second argument of apply must be sequence."))
+        let mut ys = match self.eval(xs.pop().unwrap()){
+            Ok(v) => 
+                if v.is_list() || v.is_vector(){
+                    v.unwrap_sequence().unwrap()
+                }else{
+                    return Err(format!(
+                        "The last argument of apply must be sequence, we got {}.",
+                        v.to_string(false)))
+                },
+            Err(e) => return Err(e),
         };
 
-        xs.insert(0,f);
+        for x in xs.into_iter().rev(){
+            match self.eval(x){
+                Ok(v) => ys.insert(0,v),
+                Err(e) => return Err(e),
+            }
+        }
 
-        self.eval(MalType::List(xs))
+        // let mut ys : Vec<MalType>= ys
+        //     .into_iter()
+        //     .map(|y| MalType::List(vec![
+        //         MalType::BuiltInFunction(BuiltInFunction::Quote),
+        //         y]))
+        //     .collect();
+
+        eprintln!("apply result = {}",MalType::List(ys.clone()).to_string(false));
+
+        match f{
+            MalType::Function(_,_,_,_,_) =>{
+                let (argnames,body,is_rest,local_env,_) = 
+                    f.unwrap_function().unwrap();
+                // eprintln!("{:?}",body.to_string(true));
+                self.env.let_start();
+                let ast = match self.ready_call_function(
+                    argnames,body,is_rest,ys,local_env,false){
+                    Ok(body) => body,
+                    Err(e) => return Err(e),
+                };
+
+                self.eval(ast)
+            },
+            MalType::BuiltInFunction(_) =>{
+                ys.insert(0,f);
+                self.eval(MalType::List(ys))
+            }
+
+            _ => Err(format!("It's bug at apply."))
+        }
+
+
     }
 
     fn mal_read_string(&mut self,x:MalType)->Result<MalType,String>{

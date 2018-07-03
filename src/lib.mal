@@ -93,5 +93,13 @@
                 (throw "cond requires an even number of forms"))
             (cons 'cond (rest (rest clauses)))))))
 
+(def! symbol? (fn* [x]
+    (= "symbol" (type-str x))))
+
+(def! true? (fn* [x]
+        (if (= x true) true false)))
+
+(def! false? (fn* [x]
+        (if (= x false) true false)))
 
 nil
