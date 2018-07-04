@@ -586,6 +586,74 @@ impl Interpreter{
                     Err(e) => Err(e),
                 }
             },
+            BuiltInFunction::Assoc => {
+                if xs.len() != 3{
+                    Err(format!(
+                        "The function assoc needs exactly 3 arguments, we got {}.",xs.len()))
+                }else{
+                    let val = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    let key = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    let dic = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    
+                    mal_assoc(val,key,dic)
+                }
+            },
+            BuiltInFunction::Get => {
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function get needs exactly 2 arguments, we got {}.",xs.len()))
+                }else{
+                    let key = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    let dic = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    mal_get(dic,key)
+                }
+            },
+            BuiltInFunction::Contains => {
+                if xs.len() != 2{
+                    Err(format!(
+                        "The function contains? needs exactly 2 arguments, we got {}.",xs.len()))
+                }else{
+                    let key = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    let dic = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    mal_contains(dic,key)
+                }
+            },
+            BuiltInFunction::Keys => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function keys needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    let dic = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    mal_keys(dic)
+                }
+            },
+            BuiltInFunction::Vals => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function vals needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    let dic = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    mal_vals(dic)
+                }
+            },
         }
     }
 }

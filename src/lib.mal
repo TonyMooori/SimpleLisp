@@ -109,4 +109,8 @@
     (if (list? x) 
         true
         (vector? x))))
+
+(def! map? (fn* [x] 
+    (= "dict" (type-str x))))
+
 nil

@@ -337,3 +337,96 @@ pub fn mal_concat(xs:Vec<MalType>) -> Result<MalType,String>{
 
     Ok(MalType::List(ys))
 }
+
+pub fn mal_assoc(val:MalType,key:MalType,dic:MalType)->Result<MalType,String>{
+    let key = match key {
+        MalType::Str(s) => format!(" {}",s),
+        MalType::Keyword(s) => s,
+        _ => return Err(format!(
+                "The argument of assoc must be keyword or string, we got {}.",
+                key.to_string(false)))
+    };
+
+    if let MalType::Dict(mut dic) = dic{
+        dic.insert(key,val);
+        Ok(MalType::Dict(dic))
+    }else{
+        Err(format!("The first argument of assoc must be hash-map, we got {}.",
+            dic.to_string(false)))
+    }
+}
+
+pub fn mal_get(dic:MalType,key:MalType)->Result<MalType,String>{
+    if let MalType::Dict(dic) = dic{
+        if let MalType::Str(key) = key{
+            return match dic.get(&format!(" {}",key)){
+                Some(v) => Ok(v.clone()),
+                None => Ok(MalType::Nil)
+            };
+        }else if let MalType::Keyword(key) = key{
+            return match dic.get(&key){
+                Some(v) => Ok(v.clone()),
+                None => Ok(MalType::Nil)
+            };
+        }
+    }
+
+    Ok(MalType::Nil)
+}
+
+pub fn mal_contains(dic:MalType,key:MalType)->Result<MalType,String>{
+    if let MalType::Dict(dic) = dic{
+        if let MalType::Str(key) = key{
+            return match dic.get(&format!(" {}",key)){
+                Some(_) => Ok(MalType::Bool(true)),
+                None => Ok(MalType::Bool(false)),
+            };
+        }else if let MalType::Keyword(key) = key{
+            return match dic.get(&key){
+                Some(_) => Ok(MalType::Bool(true)),
+                None => Ok(MalType::Bool(false)),
+            };
+        }
+    }
+
+    Ok(MalType::Bool(false))
+}
+
+pub fn mal_keys(dic:MalType)->Result<MalType,String>{
+    if let MalType::Dict(dic) = dic{
+        let mut xs = vec![];
+
+        for (key,_) in &dic{
+            let mut key = key.clone();
+            let key = if key.chars().nth(0).unwrap() == ' '{
+                key.remove(0);
+                MalType::Str(key)
+            }else{
+                MalType::Keyword(key)
+            };
+            xs.push(key);
+        }
+
+        Ok(MalType::List(xs))
+    }else{
+        Err(format!(
+            "The argument of key must be hash-map, we got {}",
+            dic.to_string(false)))
+    }
+}
+
+pub fn mal_vals(dic:MalType)->Result<MalType,String>{
+    if let MalType::Dict(dic) = dic{
+        let mut xs = vec![];
+
+        for (_,val) in &dic{
+            xs.push(val.clone());
+        }
+
+        Ok(MalType::List(xs))
+    }else{
+        Err(format!(
+            "The argument of vals must be hash-map, we got {}",
+            dic.to_string(false)))
+    }
+}

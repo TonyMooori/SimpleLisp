@@ -76,9 +76,14 @@ pub enum BuiltInFunction{
     Symbol,
     Keyword,
     Vector,
+    Assoc,
+    Get,
+    Contains,
+    Keys,
+    Vals,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);42] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);47] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -121,6 +126,11 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);42] = [
     ("symbol",BuiltInFunction::Symbol),
     ("keyword",BuiltInFunction::Keyword),
     ("vector",BuiltInFunction::Vector),
+    ("assoc",BuiltInFunction::Assoc),
+    ("get",BuiltInFunction::Get),
+    ("contains?",BuiltInFunction::Contains),
+    ("keys",BuiltInFunction::Keys),
+    ("vals",BuiltInFunction::Vals),
 ];
 
 impl MalType{
@@ -193,7 +203,17 @@ impl MalType{
             MalType::Dict(d) => {
                 let mut xs = vec![];
                 for (key,val) in d{
-                    xs.push(format!("{} {}",key,val.to_string(print_readably)));
+                    let mut key = key.clone();
+                    let key = if key.chars().nth(0).unwrap() == ' '{
+                        key.remove(0);
+                        MalType::Str(key)
+                    }else{
+                        MalType::Keyword(key)
+                    };
+                    xs.push(
+                        format!("{} {}",
+                            key.to_string(true),
+                            val.to_string(print_readably)));
                 }
                 let joined = xs.join(",");
 
