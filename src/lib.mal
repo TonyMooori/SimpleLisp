@@ -13,8 +13,8 @@
         (if (vector? xs)
             (= [] xs)
             nil))))
-(def! or (fn* [a b]
-    (if a true (if b true false))))
+;(def! or (fn* [a b]
+;    (if a true (if b true false))))
 (def! last (fn* [xs] 
     (let* [
         n (count xs)

@@ -175,7 +175,8 @@ impl Interpreter{
             if names.len() - 1 > args.len() {
                 return Err(
                     format!(
-                        "This function needs at least {} arguments, we got {}."
+                        "This function {} needs at least {} arguments, we got {}."
+                        ,body.to_string(true)
                         ,names.len()-1
                         ,args.len()));
             }
@@ -193,7 +194,8 @@ impl Interpreter{
             if names.len() != args.len(){
                 return Err(
                     format!(
-                        "This function needs exactly {} arguments, we got {}."
+                        "This function {} needs exactly {} arguments, we got {}."
+                        ,body.to_string(true)
                         ,names.len()
                         ,args.len()));
             }
@@ -587,21 +589,19 @@ impl Interpreter{
                 }
             },
             BuiltInFunction::Assoc => {
-                if xs.len() != 3{
+                if xs.len() < 1{
                     Err(format!(
-                        "The function assoc needs exactly 3 arguments, we got {}.",xs.len()))
+                        "The function assoc needs at least 1 arguments, we got {}.",xs.len()))
                 }else{
-                    let val = match self.eval(xs.pop().unwrap()){
+                    let dic = match self.eval(xs.remove(0)){
                         Ok(v) => v, Err(e) => return Err(e)
                     };
-                    let key = match self.eval(xs.pop().unwrap()){
-                        Ok(v) => v, Err(e) => return Err(e)
-                    };
-                    let dic = match self.eval(xs.pop().unwrap()){
-                        Ok(v) => v, Err(e) => return Err(e)
-                    };
-                    
-                    mal_assoc(val,key,dic)
+                    match dic {
+                        MalType::Dict(dic) => mal_assoc(dic,xs),
+                        _ => Err(format!(
+                            "The first argument of assoc must be hash-map, we got {}.",
+                            dic.to_string(false)))
+                    }
                 }
             },
             BuiltInFunction::Get => {

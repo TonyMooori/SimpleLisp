@@ -117,30 +117,7 @@ pub fn mal_div(xs: Vec<MalType>)->Result<MalType,String>{
 
 pub fn mal_hashmap(xs: Vec<MalType>)->Result<MalType,String>{
     // eprintln!("{:?} is mal_hashmap",xs);
-
-    let pairs = sequence_to_pair(xs);
-    
-    if let Err(e) = pairs {
-        Err(e)
-    }else{
-        let pairs = pairs.unwrap();
-        let mut hm = HashMap::new();
-
-        for pair in pairs{
-            let (x,y) = pair;
-
-            if let MalType::Keyword(k) = x {
-                hm.insert(k.clone(),y);
-            }else if let MalType::Str(s) = x {
-                hm.insert(format!(" {}",s),y);
-            }else{
-                return Err(format!("{:?} is not supported as key of Dictonary",x));
-            }
-
-        }
-
-        Ok(MalType::Dict(hm))
-    }
+    mal_assoc(HashMap::new(), xs)
 }
 
 pub fn mal_lt(xs: Vec<MalType>)->Result<MalType,String>{
@@ -338,21 +315,28 @@ pub fn mal_concat(xs:Vec<MalType>) -> Result<MalType,String>{
     Ok(MalType::List(ys))
 }
 
-pub fn mal_assoc(val:MalType,key:MalType,dic:MalType)->Result<MalType,String>{
-    let key = match key {
-        MalType::Str(s) => format!(" {}",s),
-        MalType::Keyword(s) => s,
-        _ => return Err(format!(
-                "The argument of assoc must be keyword or string, we got {}.",
-                key.to_string(false)))
-    };
-
-    if let MalType::Dict(mut dic) = dic{
-        dic.insert(key,val);
-        Ok(MalType::Dict(dic))
+pub fn mal_assoc(mut hm: HashMap<String,MalType>,xs:Vec<MalType>)->Result<MalType,String>{
+    let pairs = sequence_to_pair(xs);
+    
+    if let Err(e) = pairs {
+        Err(e)
     }else{
-        Err(format!("The first argument of assoc must be hash-map, we got {}.",
-            dic.to_string(false)))
+        let pairs = pairs.unwrap();
+
+        for pair in pairs{
+            let (x,y) = pair;
+
+            if let MalType::Keyword(k) = x {
+                hm.insert(k.clone(),y);
+            }else if let MalType::Str(s) = x {
+                hm.insert(format!(" {}",s),y);
+            }else{
+                return Err(format!("{:?} is not supported as key of Dictonary",x));
+            }
+
+        }
+
+        Ok(MalType::Dict(hm))
     }
 }
 
