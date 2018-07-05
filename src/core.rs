@@ -133,6 +133,7 @@ pub fn mal_eq(mut xs: Vec<MalType>)->Result<MalType,String>{
     let a = xs.pop().unwrap();
     let b = xs.pop().unwrap();
 
+    // eprintln!("a={},b={}",a.to_string(false),b.to_string(false));
     if let Some(v1) = a.unwrap_sequence(){
         if let Some(v2) = b.unwrap_sequence(){
             if v1.len() != v2.len(){
@@ -151,6 +152,30 @@ pub fn mal_eq(mut xs: Vec<MalType>)->Result<MalType,String>{
                     _ => {},
                 }
             }
+            return Ok(MalType::Bool(true));
+        }
+    }
+
+    if let MalType::Dict(h1) = a.clone() {
+        if let MalType::Dict(h2) = b{
+            if h1.len() != h2.len(){
+                return Ok(MalType::Bool(false));
+            }
+
+            for (key,val1) in &h1{
+                let val2 = match h2.get(key){
+                    Some(v) => v,
+                    None => return Ok(MalType::Bool(false))
+                };
+
+                let same = mal_eq(vec![val1.clone(),val2.clone()])
+                            .unwrap().unwrap_bool().unwrap();
+
+                if ! same{
+                    return Ok(MalType::Bool(false));
+                }
+            }
+
             return Ok(MalType::Bool(true));
         }
     }
