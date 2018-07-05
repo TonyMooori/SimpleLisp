@@ -654,6 +654,12 @@ impl Interpreter{
                     mal_vals(dic)
                 }
             },
+            BuiltInFunction::Dissoc => {
+                match self.eval_sequence(xs){
+                    Ok(ys) => mal_dissoc(ys),
+                    Err(e) => Err(e),
+                }
+            }
         }
     }
 }

@@ -414,3 +414,29 @@ pub fn mal_vals(dic:MalType)->Result<MalType,String>{
             dic.to_string(false)))
     }
 }
+
+pub fn mal_dissoc(mut xs:Vec<MalType>)->Result<MalType,String>{
+    if xs.len() == 0 {
+        return Err(format!(
+            "The function dissoc needs at least one argument, we got 0."));
+    }
+
+    let mut dic = match xs.remove(0){
+        MalType::Dict(dic) => dic,
+        v => return Err(format!(
+            "The first argument of dissoc must be dictonary, we got {}."
+            ,v.to_string(false)))
+    };
+
+    for x in xs{
+        let mut key = match x{
+            MalType::Keyword(key) => key,
+            MalType::Str(s) => format!(" {}",s),
+            _ => continue,
+        };
+
+        dic.remove(&key);
+    }
+
+    Ok(MalType::Dict(dic))
+}

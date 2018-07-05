@@ -81,9 +81,10 @@ pub enum BuiltInFunction{
     Contains,
     Keys,
     Vals,
+    Dissoc,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);47] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);48] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -131,6 +132,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);47] = [
     ("contains?",BuiltInFunction::Contains),
     ("keys",BuiltInFunction::Keys),
     ("vals",BuiltInFunction::Vals),
+    ("dissoc",BuiltInFunction::Dissoc),
 ];
 
 impl MalType{
