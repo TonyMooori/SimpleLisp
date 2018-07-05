@@ -659,7 +659,25 @@ impl Interpreter{
                     Ok(ys) => mal_dissoc(ys),
                     Err(e) => Err(e),
                 }
-            }
+            },
+            BuiltInFunction::ReadLine => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function readline needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    let s = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    if let MalType::Str(s) = s{
+                        println!("{}",s);
+                        Ok(MalType::Str(self.read_line().trim().to_string()))
+                    }else{
+                        Err(format!(
+                            "The first argument of readline must be string, we got {}",
+                            s.to_string(true)))
+                    }
+                }
+            },
         }
     }
 }

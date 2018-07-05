@@ -82,9 +82,10 @@ pub enum BuiltInFunction{
     Keys,
     Vals,
     Dissoc,
+    ReadLine,
 }
 
-pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);48] = [
+pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);49] = [
     ("+",BuiltInFunction::Add),
     ("-",BuiltInFunction::Sub),
     ("*",BuiltInFunction::Mul),
@@ -133,6 +134,7 @@ pub const BUILD_IN_FUNCTION_NAMES : [(&str,BuiltInFunction);48] = [
     ("keys",BuiltInFunction::Keys),
     ("vals",BuiltInFunction::Vals),
     ("dissoc",BuiltInFunction::Dissoc),
+    ("readline",BuiltInFunction::ReadLine),
 ];
 
 impl MalType{

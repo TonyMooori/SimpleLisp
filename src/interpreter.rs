@@ -58,16 +58,21 @@ impl Interpreter{
         let mut s = String::new();
 
         loop{
-            let mut new_line = String::new();
-            // println!("user=>");
-            io::stdin().read_line(&mut new_line).unwrap();
-
+            let new_line = self.read_line();
             if new_line.trim() == ""{
                 return s
             }else{
                 s = format!("{}{}",s,new_line);
             }
         } 
+    }
+
+    pub fn read_line(&self)->String{
+        let mut new_line = String::new();
+        // println!("user=>");
+        io::stdin().read_line(&mut new_line).unwrap();
+
+        new_line
     }
 
     pub fn load_file(&mut self,filename:String)->Result<MalType,String>{
