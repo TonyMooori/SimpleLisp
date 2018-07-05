@@ -6,11 +6,11 @@ use std::collections::HashMap;
 
 impl Interpreter{
     pub fn eval(&mut self,mut ast:MalType)-> Result<MalType,String>{
-        // eprintln!("evaluating {:?} in eval",ast);
         let mut result : Result<MalType,String> = Ok(MalType::Nil);
         let env_level = self.env.get_level();
         
         loop{
+            // eprintln!("evaluating {} in eval",ast.to_string(true));
             ast = match self.mal_macroexpand(ast){
                 Err(e) => return Err(e),
                 Ok(v) => v,
@@ -823,7 +823,7 @@ impl Interpreter{
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
-            // eprintln!("we evaluated x and x = {}",x.to_string(true));
+            // eprintln!("macroexpanded x = {}",x.to_string(true));
         }
 
         Ok(x)

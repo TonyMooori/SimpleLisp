@@ -13,8 +13,8 @@
         (if (vector? xs)
             (= [] xs)
             nil))))
-;(def! or (fn* [a b]
-;    (if a true (if b true false))))
+(def! --or (fn* [a b]
+    (if a true (if b true false))))
 (def! last (fn* [xs] 
     (let* [
         n (count xs)
@@ -23,14 +23,14 @@
     r)))
 (def! count (fn* [xs]
     ; TODO: if not list or vertor , assert
-    (if (or (list? xs) (vector? xs))
+    (if (--or (list? xs) (vector? xs))
         (if (empty? xs)
             0
             (inc (count (rest xs))))
         0)))
 (def! > (fn* [a b] (< b a)))
-(def! >= (fn* [a b] (or (> a b) (= a b))))
-(def! <= (fn* [a b] (or (< a b) (= a b))))
+(def! >= (fn* [a b] (--or (> a b) (= a b))))
+(def! <= (fn* [a b] (--or (< a b) (= a b))))
 (def! not= (fn* [a b] (not (= a b))))
 (def! zero? (fn* [n] (= n 0)))
 (def! mod (fn* [n m]
