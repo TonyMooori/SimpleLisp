@@ -63,6 +63,10 @@ impl Env{
             "*ARGV*".to_string(),
             MalType::List(argv)
         );
+        env.insert(
+            "*host-language*".to_string(),
+            MalType::Str("Rust".to_string())
+        );
 
         env
     }

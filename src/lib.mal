@@ -96,6 +96,15 @@
 (def! symbol? (fn* [x]
     (= "symbol" (type-str x))))
 
+(def! number? (fn* [x]
+    (= "int" (type-str x))))
+
+(def! fn? (fn* [x]
+    (or (= "built-in-func" (type-str x)) (= "func" (type-str x)) )))
+
+(def! macro? (fn* [x]
+    (= "macro" (type-str x))))
+
 (def! true? (fn* [x]
         (if (= x true) true false)))
 
@@ -112,5 +121,37 @@
 
 (def! map? (fn* [x] 
     (= "dict" (type-str x))))
+
+(def! conj-list (fn* [xs ys]
+    (if (empty? ys)
+        xs
+        (let*[
+            y (first ys)
+            ys (rest ys)
+        ]
+        (conj-list (cons y xs) ys)))))
+
+(def! append (fn* [xs x]
+    (let*[
+        n (count xs)
+    ]
+    (insert xs n x))))
+
+(def! conj-vector (fn* [xs ys]
+    (if (empty? ys)
+        xs
+        (let*[
+            y (first ys)
+            zs (rest ys)
+        ]
+        (conj-vector (append xs y) zs)))))
+
+(def! conj (fn* [xs & ys]
+    (if (vector? xs)
+        (conj-vector xs ys)
+        (if (list? xs)
+            (conj-list xs ys)
+            (throw "The first argument of conj must be list or vector")))))
+
 
 nil

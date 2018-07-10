@@ -235,7 +235,12 @@ pub fn mal_typestr(x:MalType)->Result<MalType,String>{
         MalType::Bool(_) => "bool",
         MalType::Vector(_) => "vector",
         MalType::List(_) => "list",
-        MalType::Function(_,_,_,_,_) => "func",
+        MalType::Function(_,_,_,_,is_macro) => 
+            if is_macro {
+                "macro"
+            }else{
+                "func"
+            },
         MalType::BuiltInFunction(_) => "built-in-func",
         MalType::Keyword(_) => "keyword",
         MalType::Dict(_) => "dict",
