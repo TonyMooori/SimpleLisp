@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn to_integer_vec(xs: Vec<MalType>)->Result<Vec<i64>,String>{
     let mut v = Vec::new();
@@ -469,4 +470,35 @@ pub fn mal_dissoc(mut xs:Vec<MalType>)->Result<MalType,String>{
     }
 
     Ok(MalType::Dict(dic))
+}
+
+pub fn mal_seq(x:MalType)->Result<MalType,String>{
+    let v = match x{
+        MalType::List(v)=>v,
+        MalType::Vector(v) => v,
+        MalType::Str(s) => {
+            let mut temp = vec![];
+            for c in s.chars(){
+                temp.push(
+                    MalType::Str(c.to_string()));
+            }
+            temp
+        },
+        _ => vec![]
+    };
+
+    if v.len() == 0{
+        Ok(MalType::Nil)
+    }else{
+        Ok(MalType::List(v))
+    }
+}
+
+pub fn mal_time_ms()->Result<MalType,String>{
+    let start = SystemTime::now();
+    let since_the_epoch = start.duration_since(UNIX_EPOCH)
+        .expect("Time went backwards");
+    let in_ms = since_the_epoch.as_secs() * 1000 +
+            since_the_epoch.subsec_nanos() as u64 / 1_000_000;
+    Ok(MalType::Integer(in_ms as i64))
 }

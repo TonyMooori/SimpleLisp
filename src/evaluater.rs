@@ -678,6 +678,25 @@ impl Interpreter{
                     }
                 }
             },
+            BuiltInFunction::Seq => {
+                if xs.len() != 1{
+                    Err(format!(
+                        "The function seq needs exactly 1 arguments, we got {}.",xs.len()))
+                }else{
+                    let x = match self.eval(xs.pop().unwrap()){
+                        Ok(v) => v, Err(e) => return Err(e)
+                    };
+                    mal_seq(x)
+                }
+            },
+            BuiltInFunction::TimeMs => {
+                if xs.len() != 0{
+                    Err(format!(
+                        "The function time-ms needs exactly 0 arguments, we got {}.",xs.len()))
+                }else{
+                    mal_time_ms()
+                }
+            }
         }
     }
 }
